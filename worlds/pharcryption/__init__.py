@@ -59,9 +59,9 @@ class PharcryptionWorld(World):
     def fill_slot_data(self) -> Dict[str, any]:
         return {
             "world_count": self.world_count,
-            "encrypted_items": self.encrypted_items,
-            "payment_amount": self.payment_amount,
-            "enable_timelimit": self.enable_timelimit,
+            "encrypted_items": self.encrypted_items.value,
+            "payment_amount": self.payment_amount.value,
+            "enable_timelimit": self.enable_timelimit.value,
             "timelimit": self.timelimit.total_seconds(),
         }
 
@@ -119,6 +119,7 @@ class PharcryptionWorld(World):
 
         # Set all locations to priority.
         self.multiworld.priority_locations[self.player].value = set(locations)
+        self.multiworld.start_location_hints[self.player].value = set(locations)
 
     def get_filler_item_name(self) -> str:
         raise NotImplementedError("This game does not support creating filler items.")
