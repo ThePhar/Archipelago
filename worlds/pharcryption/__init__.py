@@ -56,6 +56,15 @@ class PharcryptionWorld(World):
         if cls.world_count > 100:
             raise RuntimeError(f"Pharcryption only allows 100 or fewer worlds. Found {cls.world_count} worlds.")
 
+    def fill_slot_data(self) -> Dict[str, any]:
+        return {
+            "world_count": self.world_count,
+            "encrypted_items": self.encrypted_items,
+            "payment_amount": self.payment_amount,
+            "enable_timelimit": self.enable_timelimit,
+            "timelimit": self.timelimit.total_seconds(),
+        }
+
     def create_item(self, name: str) -> Item:
         return Item(name, ItemClassification.progression, self.item_name_to_id[name], self.player)
 
