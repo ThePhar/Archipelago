@@ -2,11 +2,8 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import copy
-import functools
-import logging
-import zlib
 import collections
+import copy
 import datetime
 import functools
 import hashlib
@@ -1015,7 +1012,13 @@ def format_hint(ctx: Context, team: int, hint: NetUtils.Hint) -> str:
 def json_format_send_event(net_item: NetworkItem, receiving_player: int):
     parts = []
     NetUtils.add_json_text(parts, net_item.player, type=NetUtils.JSONTypes.player_id)
-    if net_item.player == receiving_player:
+    if net_item.item in [420_000_000, 420_000_001, 420_000_002]:
+        # Only for my Pharcryption games. :)
+        NetUtils.add_json_text(parts, " mined ")
+        NetUtils.add_json_item(parts, net_item.item, net_item.player, net_item.flags)
+        NetUtils.add_json_text(parts, " for ")
+        NetUtils.add_json_text(parts, receiving_player, type=NetUtils.JSONTypes.player_id)
+    elif net_item.player == receiving_player:
         NetUtils.add_json_text(parts, " found their ")
         NetUtils.add_json_item(parts, net_item.item, net_item.player, net_item.flags)
     else:
