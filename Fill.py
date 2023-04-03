@@ -1,11 +1,10 @@
-import logging
-import typing
 import collections
 import itertools
+import logging
+import typing
 from collections import Counter, deque
 
-from BaseClasses import CollectionState, Location, LocationProgressType, MultiWorld, Item, ItemClassification
-
+from BaseClasses import CollectionState, Item, Location, LocationProgressType, MultiWorld
 from worlds.AutoWorld import call_all
 from worlds.generic.Rules import add_item_rule
 
@@ -550,7 +549,7 @@ def balance_multiworld_progression(world: MultiWorld) -> None:
             return {loc for loc in locations if sphere_state.can_reach(loc)}
 
         def item_percentage(player: int, num: int) -> float:
-            return num / total_locations_count[player]
+            return num / total_locations_count[player] if total_locations_count[player] else 1
 
         while True:
             # Gather non-locked locations.
