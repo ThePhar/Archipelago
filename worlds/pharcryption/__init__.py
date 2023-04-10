@@ -41,7 +41,7 @@ class PharcryptionWorld(World):
         pharcryption_worlds = len([pw for pw in multiworld.worlds.values() if isinstance(pw, PharcryptionWorld)])
         cls.world_count = len([
             w for w in multiworld.worlds.values()
-            if not isinstance(w, PharcryptionWorld) or not isinstance(w, GenericWorld)
+            if not isinstance(w, PharcryptionWorld) and not isinstance(w, GenericWorld)
         ])
 
         # Only 1 Pharcryption world can be present in a given multiworld.
