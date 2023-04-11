@@ -135,7 +135,9 @@ class PharcryptionWorld(World):
 
     def create_regions(self) -> None:
         # Generate all locations and region.
-        locations = [f"Encrypted Item #{i + 1}" for i in range(self.encrypted_items * self.world_count)]
+        locations = {
+            f"Encrypted Item #{i + 1}": GAME_ID_OFFSET + i for i in range(self.encrypted_items * self.world_count)
+        }
         region = Region("Menu", self.player, self.multiworld)
         region.add_locations(locations, PharcryptionLocation)
         self.multiworld.regions.append(region)
