@@ -4,11 +4,24 @@ from Options import AssembleOptions, DefaultOnToggle, Range
 
 
 class EncryptedItems(Range):
-    """Number of items per player to "encrypt"."""
+    """
+    Number of items per player to "encrypt".
+
+    Warning: Will cause generation failure if there are not enough progression items available to fulfil this
+    requirement.
+    """
     display_name = "Items to Encrypt per Player"
-    default = 10
-    range_start = 1
-    range_end = 30
+    default = 15
+    range_start = 10
+    range_end = 50
+
+
+class FreeDecryptions(Range):
+    """Amount of free-choice "decryptions" given to Pharcryption per player."""
+    display_name = "Free Decryptions per Player"
+    default = 1
+    range_start = 0
+    range_end = 5
 
 
 class PaymentAmount(Range):
@@ -59,8 +72,9 @@ class TimelimitMinutes(Range):
     range_end = 59
 
 
-pharcryption_options: Dict[str, AssembleOptions] = {
+options: Dict[str, AssembleOptions] = {
     "encrypted_items":   EncryptedItems,
+    "free_decryptions":  FreeDecryptions,
     "payment_amount":    PaymentAmount,
     "extra_pharcoins":   ExtraPharcoins,
     "enable_timelimit":  EnableTimelimit,
