@@ -492,12 +492,14 @@ class ALTTPWorld(World):
             "Progressive Mail": "the dusty remains of some Red Mail",
             "Progressive Shield": "the dusty remains of a Mirror Shield",
             "Progressive Sword": "the dusty remains of a sword",
+            "Pegasus Boots": "the dusty remains of vanity boots",
         }
 
         prog_item_snapped: typing.Dict[str, typing.List[int]] = {
             "Progressive Sword": [],
             "Progressive Mail": [],
             "Progressive Shield": [],
+            "Pegasus Boots": [],
         }
 
         piece_index = 0

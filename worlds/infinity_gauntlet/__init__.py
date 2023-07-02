@@ -55,6 +55,7 @@ class IGWorld(World):
         "the dusty remains of a bee":                       69_889_000 + 0x0E,
         "the dusty remains of a bunch of bees":             69_889_000 + 0xB0,
         "the dusty remains of a sword":                     69_889_000 + 0x5E,
+        "the dusty remains of vanity boots":                69_889_000 + 1000,
     }
 
     def create_item(self, name: str) -> IGItem:

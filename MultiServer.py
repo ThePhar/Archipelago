@@ -958,7 +958,7 @@ def register_location_checks(ctx: Context, team: int, slot: int, locations: typi
 
             if ctx.item_names[item_id].endswith(" Stone"):
                 info_text = json_format_stone_event(new_item, target_player)
-            elif ctx.item_names[item_id].startswith("the dusted"):
+            elif ctx.item_names[item_id].startswith("the dusty"):
                 info_text = json_format_dust_event(new_item, target_player)
             elif ctx.item_names[item_id] == "Triforce Piece":
                 info_text = json_format_triforce_event(new_item, target_player)
