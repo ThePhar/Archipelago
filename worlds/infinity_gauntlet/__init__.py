@@ -75,7 +75,7 @@ class IGWorld(World):
 
     def has_all_stones(self, state: CollectionState):
         return state.has_all(
-            set([item for item in self.item_name_to_id.keys() if not item.startswith("The dusty")]),
+            set([item for item in self.item_name_to_id.keys() if not item.startswith("the dusty")]),
             self.player
         )
 
