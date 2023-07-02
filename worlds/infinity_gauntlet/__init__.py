@@ -34,32 +34,32 @@ class IGWorld(World):
         "Time Stone":    69_888_005,
 
         # "Snapped" Items
-        "the dusted remains of a single arrow":              69_889_000 + 0x43,
-        "the dusted remains of 10 arrows":                   69_889_000 + 0x44,
-        "the dusted remains of a single bomb":               69_889_000 + 0x27,
-        "the dusted remains of 3 bombs":                     69_889_000 + 0x28,
-        "the dusted remains of 10 bombs":                    69_889_000 + 0x31,
-        "the dusted remains of some Red Mail":               69_889_000 + 0x60,
-        "the dusted remains of a Mirror Shield":             69_889_000 + 0x5F,
-        "the dusted remains of a Boss Heart Container":      69_889_000 + 0x3E,
-        "the dusted remains of a Sanctuary Heart Container": 69_889_000 + 0x3F,
-        "the dusted remains of a Piece of Heart":            69_889_000 + 0x17,
-        "the dusted remains of a green rupee":               69_889_000 + 0x34,
-        "the dusted remains of a blue rupee":                69_889_000 + 0x35,
-        "the dusted remains of a red rupee":                 69_889_000 + 0x36,
-        "the dusted remains of a purple rupee":              69_889_000 + 0x41,
-        "the dusted remains of an orange rupee":             69_889_000 + 0x40,
-        "the dusted remains of a silver rupee":              69_889_000 + 0x46,
-        "the dusted remains of a map":                       69_889_000 + 9999,
-        "the dusted remains of a compass":                   69_889_000 + 9998,
-        "the dusted remains of a bee":                       69_889_000 + 0x0E,
-        "the dusted remains of a bunch of bees":             69_889_000 + 0xB0,
-        "the dusted remains of a sword":                     69_889_000 + 0x5E,
+        "the dusty remains of a single arrow":              69_889_000 + 0x43,
+        "the dusty remains of 10 arrows":                   69_889_000 + 0x44,
+        "the dusty remains of a single bomb":               69_889_000 + 0x27,
+        "the dusty remains of 3 bombs":                     69_889_000 + 0x28,
+        "the dusty remains of 10 bombs":                    69_889_000 + 0x31,
+        "the dusty remains of some Red Mail":               69_889_000 + 0x60,
+        "the dusty remains of a Mirror Shield":             69_889_000 + 0x5F,
+        "the dusty remains of a Boss Heart Container":      69_889_000 + 0x3E,
+        "the dusty remains of a Sanctuary Heart Container": 69_889_000 + 0x3F,
+        "the dusty remains of a Piece of Heart":            69_889_000 + 0x17,
+        "the dusty remains of a green rupee":               69_889_000 + 0x34,
+        "the dusty remains of a blue rupee":                69_889_000 + 0x35,
+        "the dusty remains of a red rupee":                 69_889_000 + 0x36,
+        "the dusty remains of a purple rupee":              69_889_000 + 0x41,
+        "the dusty remains of an orange rupee":             69_889_000 + 0x40,
+        "the dusty remains of a silver rupee":              69_889_000 + 0x46,
+        "the dusty remains of a map":                       69_889_000 + 9999,
+        "the dusty remains of a compass":                   69_889_000 + 9998,
+        "the dusty remains of a bee":                       69_889_000 + 0x0E,
+        "the dusty remains of a bunch of bees":             69_889_000 + 0xB0,
+        "the dusty remains of a sword":                     69_889_000 + 0x5E,
     }
 
     def create_item(self, name: str) -> IGItem:
         classification = ItemClassification.progression_skip_balancing
-        if name.startswith("The dusted"):
+        if name.startswith("the dusty"):
             classification = ItemClassification.trap
 
         return IGItem(name, classification, self.item_name_to_id[name], self.player)
@@ -75,7 +75,7 @@ class IGWorld(World):
 
     def has_all_stones(self, state: CollectionState):
         return state.has_all(
-            set([item for item in self.item_name_to_id.keys() if not item.startswith("The dusted")]),
+            set([item for item in self.item_name_to_id.keys() if not item.startswith("The dusty")]),
             self.player
         )
 

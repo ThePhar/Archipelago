@@ -964,7 +964,7 @@ def register_location_checks(ctx: Context, team: int, slot: int, locations: typi
                 info_text = json_format_triforce_event(new_item, target_player)
             else:
                 info_text = json_format_send_event(new_item, target_player)
-            
+
             ctx.broadcast_team(team, [info_text])
 
         ctx.location_checks[team, slot] |= new_locations
@@ -1047,7 +1047,7 @@ def json_format_send_event(net_item: NetworkItem, receiving_player: int):
 
 def json_format_stone_event(net_item: NetworkItem, receiving_player: int):
     parts = []
-    NetUtils.add_json_text(parts, net_item, type=NetUtils.JSONTypes.player_id)
+    NetUtils.add_json_text(parts, net_item.player, type=NetUtils.JSONTypes.player_id)
     NetUtils.add_json_text(parts, " found the ")
     NetUtils.add_json_item(parts, net_item.item, net_item.player, net_item.flags)
     NetUtils.add_json_text(parts, " (")
@@ -1061,10 +1061,10 @@ def json_format_stone_event(net_item: NetworkItem, receiving_player: int):
 
 def json_format_triforce_event(net_item: NetworkItem, receiving_player: int):
     parts = []
-    NetUtils.add_json_text(parts, net_item, type=NetUtils.JSONTypes.player_id)
-    NetUtils.add_json_text(parts, " also found a ")
+    NetUtils.add_json_text(parts, receiving_player, type=NetUtils.JSONTypes.player_id)
+    NetUtils.add_json_text(parts, " also got a ")
     NetUtils.add_json_item(parts, net_item.item, net_item.player, net_item.flags)
-    NetUtils.add_json_text(parts, "taped to the back of the stone!")
+    NetUtils.add_json_text(parts, "! It was taped to the back of the stone.")
 
     return {"cmd": "PrintJSON", "data": parts, "type": "ItemSend",
             "receiving": receiving_player,
@@ -1073,7 +1073,7 @@ def json_format_triforce_event(net_item: NetworkItem, receiving_player: int):
 
 def json_format_dust_event(net_item: NetworkItem, receiving_player: int):
     parts = []
-    NetUtils.add_json_text(parts, net_item, type=NetUtils.JSONTypes.player_id)
+    NetUtils.add_json_text(parts, net_item.player, type=NetUtils.JSONTypes.player_id)
     NetUtils.add_json_text(parts, " found ")
     NetUtils.add_json_item(parts, net_item.item, net_item.player, net_item.flags)
     NetUtils.add_json_text(parts, ". (")

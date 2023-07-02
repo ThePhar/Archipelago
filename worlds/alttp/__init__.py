@@ -470,28 +470,28 @@ class ALTTPWorld(World):
         from worlds.infinity_gauntlet import IGItem, IGWorld
 
         replacement_table: typing.Dict[str, str] = {
-            "Single Arrow": "the dusted remains of a single arrow",
-            "Arrows (10)": "the dusted remains of 10 arrows",
-            "Single Bomb": "the dusted remains of a single bomb",
-            "Bombs (3)": "the dusted remains of 3 bombs",
-            "Bombs (10)": "the dusted remains of 10 bombs",
-            "Boss Heart Container": "the dusted remains of a Boss Heart Container",
-            "Sanctuary Heart Container": "the dusted remains of a Sanctuary Heart Container",
-            "Piece of Heart": "the dusted remains of a Piece of Heart",
-            "Rupee (1)": "the dusted remains of a green rupee",
-            "Rupees (5)": "the dusted remains of a blue rupee",
-            "Rupees (20)": "the dusted remains of a red rupee",
-            "Rupees (50)": "the dusted remains of a purple rupee",
-            "Rupees (100)": "the dusted remains of an orange rupee",
-            "Rupees (300)": "the dusted remains of a silver rupee",
-            "Bee": "the dusted remains of a bee",
-            "Bee Trap": "the dusted remains of a bunch of bees",
+            "Single Arrow": "the dusty remains of a single arrow",
+            "Arrows (10)": "the dusty remains of 10 arrows",
+            "Single Bomb": "the dusty remains of a single bomb",
+            "Bombs (3)": "the dusty remains of 3 bombs",
+            "Bombs (10)": "the dusty remains of 10 bombs",
+            "Boss Heart Container": "the dusty remains of a Boss Heart Container",
+            "Sanctuary Heart Container": "the dusty remains of a Sanctuary Heart Container",
+            "Piece of Heart": "the dusty remains of a Piece of Heart",
+            "Rupee (1)": "the dusty remains of a green rupee",
+            "Rupees (5)": "the dusty remains of a blue rupee",
+            "Rupees (20)": "the dusty remains of a red rupee",
+            "Rupees (50)": "the dusty remains of a purple rupee",
+            "Rupees (100)": "the dusty remains of an orange rupee",
+            "Rupees (300)": "the dusty remains of a silver rupee",
+            "Bee": "the dusty remains of a bee",
+            "Bee Trap": "the dusty remains of a bunch of bees",
         }
 
         prog_replacement_table: typing.Dict[str, str] = {
-            "Progressive Mail": "the dusted remains of some Red Mail",
-            "Progressive Shield": "the dusted remains of a Mirror Shield",
-            "Progressive Sword": "the dusted remains of a sword",
+            "Progressive Mail": "the dusty remains of some Red Mail",
+            "Progressive Shield": "the dusty remains of a Mirror Shield",
+            "Progressive Sword": "the dusty remains of a sword",
         }
 
         prog_item_snapped: typing.Dict[str, typing.List[int]] = {
@@ -546,12 +546,12 @@ class ALTTPWorld(World):
                     continue
 
             if item.name.startswith("Map "):
-                item = IGItem("the dusted remains of a map", ItemClassification.trap, 69898999, infinity_player)
+                item = IGItem("the dusty remains of a map", ItemClassification.trap, 69898999, infinity_player)
                 new_item_pool.append(item)
                 continue
 
             if item.name.startswith("Compass "):
-                item = IGItem("the dusted remains of a compass", ItemClassification.trap, 69898998, infinity_player)
+                item = IGItem("the dusty remains of a compass", ItemClassification.trap, 69898998, infinity_player)
                 new_item_pool.append(item)
                 continue
 
