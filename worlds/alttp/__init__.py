@@ -5,24 +5,24 @@ import threading
 import typing
 
 import Utils
-from BaseClasses import Item, CollectionState, Tutorial, MultiWorld
-from .Dungeons import create_dungeons, Dungeon
-from .EntranceShuffle import link_entrances, link_inverted_entrances, plando_connect, \
-    indirect_connections, indirect_connections_inverted, indirect_connections_not_inverted
-from .InvertedRegions import create_inverted_regions, mark_dark_world_regions
-from .ItemPool import generate_itempool, difficulties
-from .Items import item_init_table, item_name_groups, item_table, GetBeemizerItem
-from .Options import alttp_options, smallkey_shuffle
-from .Regions import lookup_name_to_id, create_regions, mark_light_world_regions, lookup_vanilla_location_to_entrance, \
-    is_main_entrance
+from BaseClasses import CollectionState, Item, ItemClassification, MultiWorld, Tutorial
+from worlds.AutoWorld import LogicMixin, WebWorld, World
 from .Client import ALTTPSNIClient
-from .Rom import LocalRom, patch_rom, patch_race_rom, check_enemizer, patch_enemizer, apply_rom_settings, \
-    get_hash_string, get_base_rom_path, LttPDeltaPatch
+from .Dungeons import Dungeon, create_dungeons
+from .EntranceShuffle import indirect_connections, indirect_connections_inverted, indirect_connections_not_inverted, \
+    link_entrances, link_inverted_entrances, plando_connect
+from .InvertedRegions import create_inverted_regions, mark_dark_world_regions
+from .ItemPool import difficulties, generate_itempool
+from .Items import GetBeemizerItem, item_init_table, item_name_groups, item_table
+from .Options import alttp_options, smallkey_shuffle
+from .Regions import create_regions, is_main_entrance, lookup_name_to_id, lookup_vanilla_location_to_entrance, \
+    mark_light_world_regions
+from .Rom import LocalRom, LttPDeltaPatch, apply_rom_settings, check_enemizer, get_base_rom_path, get_hash_string, \
+    patch_enemizer, patch_race_rom, patch_rom
 from .Rules import set_rules
-from .Shops import create_shops, Shop, ShopSlotFill, ShopType, price_rate_display, price_type_display_name
-from .SubClasses import ALttPItem, LTTPRegionType
-from worlds.AutoWorld import World, WebWorld, LogicMixin
+from .Shops import Shop, ShopSlotFill, ShopType, create_shops, price_rate_display, price_type_display_name
 from .StateHelpers import can_buy_unlimited
+from .SubClasses import ALttPItem, LTTPRegionType
 
 lttp_logger = logging.getLogger("A Link to the Past")
 
@@ -230,6 +230,8 @@ class ALTTPWorld(World):
     has_progressive_bows: bool
     dungeons: typing.Dict[str, Dungeon]
 
+    counter: typing.ClassVar[int] = 0
+
     def __init__(self, *args, **kwargs):
         self.dungeon_local_item_names = set()
         self.dungeon_specific_item_names = set()
@@ -244,7 +246,7 @@ class ALTTPWorld(World):
         if not os.path.exists(rom_file):
             raise FileNotFoundError(rom_file)
         if multiworld.is_race:
-            import xxtea
+            pass
         for player in multiworld.get_game_players(cls.game):
             if multiworld.worlds[player].use_enemizer:
                 check_enemizer(multiworld.worlds[player].enemizer_path)
@@ -460,9 +462,102 @@ class ALTTPWorld(World):
             raise FillError('Unable to place dungeon prizes')
 
     @classmethod
-    def stage_pre_fill(cls, world):
+    def stage_pre_fill(cls, world: MultiWorld):
         from .Dungeons import fill_dungeons_restrictive
         fill_dungeons_restrictive(world)
+
+        # Thanos did a sneaky.
+        from worlds.infinity_gauntlet import IGItem, IGWorld
+
+        replacement_table: typing.Dict[str, str] = {
+            "Single Arrow": "the dusted remains of a single arrow",
+            "Arrows (10)": "the dusted remains of 10 arrows",
+            "Single Bomb": "the dusted remains of a single bomb",
+            "Bombs (3)": "the dusted remains of 3 bombs",
+            "Bombs (10)": "the dusted remains of 10 bombs",
+            "Boss Heart Container": "the dusted remains of a Boss Heart Container",
+            "Sanctuary Heart Container": "the dusted remains of a Sanctuary Heart Container",
+            "Piece of Heart": "the dusted remains of a Piece of Heart",
+            "Rupee (1)": "the dusted remains of a green rupee",
+            "Rupees (5)": "the dusted remains of a blue rupee",
+            "Rupees (20)": "the dusted remains of a red rupee",
+            "Rupees (50)": "the dusted remains of a purple rupee",
+            "Rupees (100)": "the dusted remains of an orange rupee",
+            "Rupees (300)": "the dusted remains of a silver rupee",
+            "Bee": "the dusted remains of a bee",
+            "Bee Trap": "the dusted remains of a bunch of bees",
+        }
+
+        prog_replacement_table: typing.Dict[str, str] = {
+            "Progressive Mail": "the dusted remains of some Red Mail",
+            "Progressive Shield": "the dusted remains of a Mirror Shield",
+            "Progressive Sword": "the dusted remains of a sword",
+        }
+
+        prog_item_snapped: typing.Dict[str, typing.List[int]] = {
+            "Progressive Sword": [],
+            "Progressive Mail": [],
+            "Progressive Shield": [],
+        }
+
+        piece_index = 0
+        stones = [
+            "Taped to the Space Stone",
+            "Taped to the Reality Stone",
+            "Taped to the Power Stone",
+            "Taped to the Soul Stone",
+            "Taped to the Mind Stone",
+            "Taped to the Time Stone",
+        ]
+
+        infinity_player = [ig_world for ig_world in world.worlds.values() if isinstance(ig_world, IGWorld)][0].player
+        new_item_pool: typing.List[Item] = []
+        for item in world.itempool:
+            # Don't want to touch our beautiful items.
+            if isinstance(item, IGItem):
+                new_item_pool.append(item)
+                continue
+
+            if item.name == "Triforce Piece":
+                world.get_location(stones[piece_index], infinity_player).place_locked_item(item)
+                piece_index += 1
+                continue
+
+            if item.name in prog_item_snapped.keys():
+                if item.player not in prog_item_snapped[item.name]:
+                    prog_item_snapped[item.name].append(item.player)
+                    item_id = IGWorld.item_name_to_id[prog_replacement_table[item.name]]
+                    item = IGItem(prog_replacement_table[item.name], ItemClassification.trap, item_id, infinity_player)
+                    new_item_pool.append(item)
+                else:
+                    new_item_pool.append(item)
+
+                continue
+
+            # 50% Chance for Item to get Thanos snapped
+            if item.name in replacement_table.keys():
+                if world.random.choice([True, False]):
+                    item_id = IGWorld.item_name_to_id[replacement_table[item.name]]
+                    item = IGItem(replacement_table[item.name], ItemClassification.trap, item_id, infinity_player)
+                    new_item_pool.append(item)
+                    continue
+                else:
+                    new_item_pool.append(item)
+                    continue
+
+            if item.name.startswith("Map "):
+                item = IGItem("the dusted remains of a map", ItemClassification.trap, 69898999, infinity_player)
+                new_item_pool.append(item)
+                continue
+
+            if item.name.startswith("Compass "):
+                item = IGItem("the dusted remains of a compass", ItemClassification.trap, 69898998, infinity_player)
+                new_item_pool.append(item)
+                continue
+
+            new_item_pool.append(item)
+
+        world.itempool = new_item_pool
 
     @classmethod
     def stage_post_fill(cls, world):

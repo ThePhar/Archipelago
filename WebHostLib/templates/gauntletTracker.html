@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>The Infinity Gauntlet</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            {#background-image: url("../../../static/static/backgrounds/wallpaper.jpg");#}
+            background-size: cover;
+            background-color: black;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 1rem;
+        }
+
+        h1 {
+            width: 100%;
+            color: white;
+            text-align: center;
+        }
+
+        .items {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        img {
+            filter: grayscale(1) drop-shadow(0px 0px 12px #000);
+        }
+
+        .acquired {
+            filter: grayscale(0) drop-shadow(0px 0px 12px #000);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Found Pieces:</h1>
+        <div class="items">
+        <img
+            src="{{ icons['Space Stone'] }}"
+            class="{{ 'acquired' if 'Space Stone' in acquired_items }}"
+            title="Space Stone"
+        />
+        <img
+            src="{{ icons['Mind Stone'] }}"
+            class="{{ 'acquired' if 'Mind Stone' in acquired_items }}"
+            title="Mind Stone"
+        />
+        <img
+            src="{{ icons['Reality Stone'] }}"
+            class="{{ 'acquired' if 'Reality Stone' in acquired_items }}"
+            title="Reality Stone"
+        />
+        <img
+            src="{{ icons['Power Stone'] }}"
+            class="{{ 'acquired' if 'Power Stone' in acquired_items }}"
+            title="Power Stone"
+        />
+        <img
+            src="{{ icons['Time Stone'] }}"
+            class="{{ 'acquired' if 'Time Stone' in acquired_items }}"
+            title="Time Stone"
+        />
+        <img
+            src="{{ icons['Soul Stone'] }}"
+            class="{{ 'acquired' if 'Soul Stone' in acquired_items }}"
+            title="Soul Stone"
+        />
+    </div>
+    </div>
+</body>
+</html>

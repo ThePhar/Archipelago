@@ -60,7 +60,7 @@ generator:
   # Folder from which the player yaml files are pulled from
   player_files_path: "Players"
   #amount of players, 0 to infer from player files
-  players: 0
+  players: 5
   # general weights file, within the stated player_files_path location
   # gets used if players is higher than the amount of per-player files found to fill remaining slots
   weights_file_path: "weights.yaml"

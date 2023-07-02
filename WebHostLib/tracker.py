@@ -1,7 +1,7 @@
 import collections
 import datetime
 import typing
-from typing import Counter, Optional, Dict, Any, Tuple
+from typing import Any, Counter, Dict, Optional, Tuple
 from uuid import UUID
 
 from flask import render_template
@@ -564,6 +564,28 @@ def __renderMinecraftTracker(multisave: Dict[str, Any], room: Room, locations: D
                             player=player, team=team, room=room, player_name=playerName, saving_second = saving_second,
                             checks_done=checks_done, checks_in_area=checks_in_area, location_info=location_info,
                             **display_data)
+
+def __renderGauntletTracker(multisave: Dict[str, Any], room: Room, locations: Dict[int, Dict[int, Tuple[int, int, int]]],
+                             inventory: Counter, team: int, player: int, playerName: str,
+                             seed_checks_in_area: Dict[int, Dict[str, int]], checks_done: Dict[str, int], slot_data: Dict,
+                             saving_second: int) -> str:
+
+    icons = {
+        "Space Stone": "https://static.wikia.nocookie.net/marvelcinematicuniverse/images/0/0a/Space_Stone_VFX.png",
+        "Mind Stone": "https://static.wikia.nocookie.net/marvelcinematicuniverse/images/e/e4/Mind_Stone_VFX.png",
+        "Reality Stone": "https://static.wikia.nocookie.net/marvelcinematicuniverse/images/9/9b/Reality_Stone_VFX.png",
+        "Power Stone": "https://static.wikia.nocookie.net/marvelcinematicuniverse/images/d/d7/Power_Stone_VFX.png",
+        "Time Stone": "https://static.wikia.nocookie.net/marvelcinematicuniverse/images/f/f0/Time_Stone_VFX.png",
+        "Soul Stone": "https://static.wikia.nocookie.net/marvelcinematicuniverse/images/1/17/Soul_Stone_VFX.png",
+        "Wallpaper": "https://c.wallhere.com/photos/fe/3f/The_Legend_of_Zelda_video_games_Nintendo_The_Legend_of_Zelda_Majora's_Mask-223870.jpg!d",
+    }
+
+    return render_template("gauntletTracker.html",
+                            inventory=inventory, icons=icons,
+                            acquired_items={lookup_any_item_id_to_name[id] for id in inventory if
+                                            id in lookup_any_item_id_to_name},
+                            player=player, team=team, room=room, player_name=playerName, saving_second = saving_second,
+                            checks_done=checks_done, checks_in_area=checks_in_area)
 
 
 def __renderOoTTracker(multisave: Dict[str, Any], room: Room, locations: Dict[int, Dict[int, Tuple[int, int, int]]],
@@ -1574,7 +1596,8 @@ game_specific_trackers: typing.Dict[str, typing.Callable] = {
     "A Link to the Past": __renderAlttpTracker,
     "ChecksFinder": __renderChecksfinder,
     "Super Metroid": __renderSuperMetroidTracker,
-    "Starcraft 2 Wings of Liberty": __renderSC2WoLTracker
+    "Starcraft 2 Wings of Liberty": __renderSC2WoLTracker,
+    "Infinity Gauntlet": __renderGauntletTracker,
 }
 
 multi_trackers: typing.Dict[str, typing.Callable] = {

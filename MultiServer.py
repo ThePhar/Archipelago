@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import copy
 import collections
+import copy
 import datetime
 import functools
 import hashlib
@@ -955,7 +955,16 @@ def register_location_checks(ctx: Context, team: int, slot: int, locations: typi
             logging.info('(Team #%d) %s sent %s to %s (%s)' % (
                 team + 1, ctx.player_names[(team, slot)], ctx.item_names[item_id],
                 ctx.player_names[(team, target_player)], ctx.location_names[location]))
-            info_text = json_format_send_event(new_item, target_player)
+
+            if ctx.item_names[item_id].endswith(" Stone"):
+                info_text = json_format_stone_event(new_item, target_player)
+            elif ctx.item_names[item_id].startswith("the dusted"):
+                info_text = json_format_dust_event(new_item, target_player)
+            elif ctx.item_names[item_id] == "Triforce Piece":
+                info_text = json_format_triforce_event(new_item, target_player)
+            else:
+                info_text = json_format_send_event(new_item, target_player)
+            
             ctx.broadcast_team(team, [info_text])
 
         ctx.location_checks[team, slot] |= new_locations
@@ -1028,6 +1037,46 @@ def json_format_send_event(net_item: NetworkItem, receiving_player: int):
         NetUtils.add_json_text(parts, receiving_player, type=NetUtils.JSONTypes.player_id)
 
     NetUtils.add_json_text(parts, " (")
+    NetUtils.add_json_location(parts, net_item.location, net_item.player)
+    NetUtils.add_json_text(parts, ")")
+
+    return {"cmd": "PrintJSON", "data": parts, "type": "ItemSend",
+            "receiving": receiving_player,
+            "item": net_item}
+
+
+def json_format_stone_event(net_item: NetworkItem, receiving_player: int):
+    parts = []
+    NetUtils.add_json_text(parts, net_item, type=NetUtils.JSONTypes.player_id)
+    NetUtils.add_json_text(parts, " found the ")
+    NetUtils.add_json_item(parts, net_item.item, net_item.player, net_item.flags)
+    NetUtils.add_json_text(parts, " (")
+    NetUtils.add_json_location(parts, net_item.location, net_item.player)
+    NetUtils.add_json_text(parts, ")")
+
+    return {"cmd": "PrintJSON", "data": parts, "type": "ItemSend",
+            "receiving": receiving_player,
+            "item": net_item}
+
+
+def json_format_triforce_event(net_item: NetworkItem, receiving_player: int):
+    parts = []
+    NetUtils.add_json_text(parts, net_item, type=NetUtils.JSONTypes.player_id)
+    NetUtils.add_json_text(parts, " also found a ")
+    NetUtils.add_json_item(parts, net_item.item, net_item.player, net_item.flags)
+    NetUtils.add_json_text(parts, "taped to the back of the stone!")
+
+    return {"cmd": "PrintJSON", "data": parts, "type": "ItemSend",
+            "receiving": receiving_player,
+            "item": net_item}
+
+
+def json_format_dust_event(net_item: NetworkItem, receiving_player: int):
+    parts = []
+    NetUtils.add_json_text(parts, net_item, type=NetUtils.JSONTypes.player_id)
+    NetUtils.add_json_text(parts, " found ")
+    NetUtils.add_json_item(parts, net_item.item, net_item.player, net_item.flags)
+    NetUtils.add_json_text(parts, ". (")
     NetUtils.add_json_location(parts, net_item.location, net_item.player)
     NetUtils.add_json_text(parts, ")")
 
