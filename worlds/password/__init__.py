@@ -60,9 +60,7 @@ class PasswordWorld(World):
         "Re-enter Your Password": 8008_035,
     }
 
-    item_name_to_id = {
-        "Nothing": -1
-    }
+    item_name_to_id = {}
 
     def generate_early(self):
         if len([world for world in self.multiworld.worlds if isinstance(world, PasswordWorld)]) == self.multiworld.players:
