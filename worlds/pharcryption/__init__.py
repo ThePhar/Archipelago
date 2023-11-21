@@ -1,13 +1,11 @@
-from datetime import timedelta
-from typing import ClassVar, Dict
+from dataclasses import dataclass
+from typing import ClassVar, Dict, List, Any
 
-from BaseClasses import CollectionState, Item, ItemClassification, Location, MultiWorld, Region
+from BaseClasses import Item, Location, ItemClassification, MultiWorld, Region, CollectionState
 from worlds.AutoWorld import World
-from worlds.generic import GenericWorld
-from .Options import EnableTimelimit, EncryptedItems, ExtraPharcoins, FreeDecryptions, PaymentAmount, options
+from .Options import PharcryptionOptions
 
-GAME_ID_OFFSET = 420_000_000  # I'm hilarious, I know.
-MAXIMUM_WORLDS = 100          # I'd be careful setting this too high.
+ID_OFFSET = 400_400_000
 
 
 class PharcryptionItem(Item):
@@ -18,144 +16,189 @@ class PharcryptionLocation(Location):
     game = "Pharcryption"
 
 
+@dataclass
+class PharcryptionItemData:
+    block: int
+    cost: int
+
+    def increase_cost(self):
+        self.cost += 1
+
+
 class PharcryptionWorld(World):
     """
-    A meta-game for Archipelago multi-worlds where all players must work together to "decrypt" their progression items
-    that were encrypted by a "ransom" attack. Pay the ransom with Pharcoins before the time runs out and all the
-    encrypted items are lost forever!
+    A cooperative meta-game for Archipelago where players must work together to mine Pharcoins to decrypt their items
+    from a malevolent ransomware program.
     """
-
-    game = "Pharcryption"
-    hidden = True
-    option_definitions = options
-    location_name_to_id = {
-        f"Encrypted Item #{i + 1}": i + GAME_ID_OFFSET for i in range(EncryptedItems.range_end * MAXIMUM_WORLDS)
+    game: ClassVar[str] = "Pharcryption"
+    data_version: ClassVar[int] = 0
+    option_definitions = PharcryptionOptions
+    item_name_to_id: ClassVar[Dict[str, int]] = {
+        "1 Pharcoin":     ID_OFFSET + 0,
+        "2 Pharcoins":    ID_OFFSET + 1,
+        "3 Pharcoins":    ID_OFFSET + 2,
+        "4 Pharcoins":    ID_OFFSET + 3,
+        "5 Pharcoins":    ID_OFFSET + 4,
+        "Decryption Key": ID_OFFSET + 5,
+        "Nothing":        ID_OFFSET + 6,
     }
-    item_name_to_id = {
-        "1 Pharcoin":   GAME_ID_OFFSET,
-        "2 Pharcoins":  GAME_ID_OFFSET + 1,
-        "3 Pharcoins":  GAME_ID_OFFSET + 2,
+    location_name_to_id: ClassVar[Dict[str, int]] = {
+        f"Encrypted Item {item_i + 1} in Block {block_i + 1}": ID_OFFSET + (100 * block_i) + item_i
+        for item_i in range(100)
+        for block_i in range(25)
     }
-    item_name_groups = {"Pharcoins": {"1 Pharcoin", "2 Pharcoins", "3 Pharcoins"}}
 
-    world_count: ClassVar[int]
-    encrypted_items: EncryptedItems
-    free_decryptions: FreeDecryptions
-    payment_amount: PaymentAmount
-    extra_pharcoins: ExtraPharcoins
-    enable_timelimit: EnableTimelimit
-    timelimit: timedelta
+    # Pharcryption specific instance values.
+    players: ClassVar[int]
+    item_costs: Dict[int, List[PharcryptionItemData]]
+    total_item_cost: int
 
     @classmethod
     def stage_assert_generate(cls, multiworld: MultiWorld) -> None:
-        pharcryption_worlds = len([pw for pw in multiworld.worlds.values() if isinstance(pw, PharcryptionWorld)])
-        cls.world_count = len([
-            world for world in multiworld.worlds.values()
-            if not isinstance(world, PharcryptionWorld) and not isinstance(world, GenericWorld)
-        ])
+        # Only allow one Pharcryption world.
+        if sum(game == "Pharcryption" for game in multiworld.game.values()) > 1:
+            raise RuntimeError("Only one Pharcryption world is supported at this time.")
 
-        # Only 1 Pharcryption world can be present in a given multiworld.
-        if pharcryption_worlds > 1:
-            raise RuntimeError(f"Only 1 Pharcryption world allowed. Found {pharcryption_worlds} Pharcryption worlds.")
-
-        # Do not allow only Pharcryption/Archipelago worlds.
-        if cls.world_count == 0:
-            raise RuntimeError(f"You must have at least 1 other playable world with Pharcryption!")
-
-        # Only a maximum of MAXIMUM_WORLDS non-Archipelago and non-Pharcryption worlds.
-        if cls.world_count > MAXIMUM_WORLDS:
-            raise RuntimeError(
-                f"Pharcryption only allows {MAXIMUM_WORLDS} or fewer worlds. Found {cls.world_count} worlds.")
-
-    @staticmethod
-    def _has_pharcoins(state: CollectionState, player: int, amount: int) -> bool:
-        coins = state.count("1 Pharcoin", player) + \
-                state.count("2 Pharcoins", player) * 2 + \
-                state.count("3 Pharcoins", player) * 3
-
-        return coins >= amount
-
-    def fill_slot_data(self) -> Dict[str, any]:
-        return {
-            "world_count": self.world_count,
-            "encrypted_items": self.encrypted_items.value,
-            "free_decryptions": self.free_decryptions.value,
-            "payment_amount": self.payment_amount.value,
-            "enable_timelimit": self.enable_timelimit.value,
-            "timelimit": self.timelimit.total_seconds(),
-            "items": [
-                {
-                    "location": location.address,
-                    "item": location.item.code,
-                    "player": location.item.player,
-                } for location in self.multiworld.get_locations(self.player) if location.address is not None
-            ]
-        }
+        # Ensure there is at least one other world (except for Archipelago) in addition to Pharcryption.
+        cls.players = sum(game not in ["Pharcryption", "Archipelago"] for game in multiworld.game.values())
+        if cls.players < 1:
+            raise RuntimeError("There must be at least one additional non-Pharcryption or non-Archipelago world.")
 
     def create_item(self, name: str) -> PharcryptionItem:
         return PharcryptionItem(name, ItemClassification.progression, self.item_name_to_id[name], self.player)
 
     def generate_early(self) -> None:
-        # We do not honor local items in this household.
-        self.multiworld.local_items[self.player].value.clear()
+        # Make all locations "priority".
+        for location in self.location_name_to_id.keys():
+            self.multiworld.priority_locations[self.player].value.add(location)
 
-        # All items for Pharcryption are non-local.
-        self.multiworld.non_local_items[self.player].value.update({"1 Pharcoin", "2 Pharcoins", "3 Pharcoins"})
+        # Make all items non-local.
+        for item in self.item_name_to_id.keys():
+            self.multiworld.non_local_items[self.player].value.add(item)
 
-        # Set options in class.
-        self.encrypted_items = getattr(self.multiworld, "encrypted_items")[self.player]
-        self.free_decryptions = getattr(self.multiworld, "free_decryptions")[self.player]
-        self.payment_amount = getattr(self.multiworld, "payment_amount")[self.player]
-        self.extra_pharcoins = getattr(self.multiworld, "extra_pharcoins")[self.player]
-        self.enable_timelimit = getattr(self.multiworld, "enable_timelimit")[self.player]
-        self.timelimit = timedelta(
-            days=getattr(self.multiworld, "timelimit_days")[self.player].value,
-            hours=getattr(self.multiworld, "timelimit_hours")[self.player].value,
-            minutes=getattr(self.multiworld, "timelimit_minutes")[self.player].value,
+        # THIS CODE IS TERRIBLE, BUT IT DOES THE JOB
+        number_of_blocks = getattr(self.multiworld, "number_of_item_blocks")[self.player].value
+        items_per_block = getattr(self.multiworld, "number_of_items_per_block")[self.player].value
+        maximum_item_cost = getattr(self.multiworld, "maximum_pharcoin_cost")[self.player].value
+        self.total_item_cost = self.random.randint(
+            items_per_block * number_of_blocks * (maximum_item_cost - 3),  # Min
+            items_per_block * number_of_blocks * (maximum_item_cost - 2)   # Max
         )
 
-        # If timer is set, validate we have at least 30 minutes for the time limit.
-        if self.enable_timelimit and timedelta(minutes=30) > self.timelimit:
-            raise ValueError("If Pharcryption timelimit is enabled, timelimit must be at least 30 minutes.")
+        item_cost_threshold = number_of_blocks * items_per_block
+        max_item_costs: List[PharcryptionItemData] = []
+        cur_item_costs: List[PharcryptionItemData] = [
+            PharcryptionItemData(block, 1) for block in range(number_of_blocks) for _ in range(items_per_block)
+        ]
+        while item_cost_threshold < self.total_item_cost:
+            random_data_index = self.random.randint(0, len(cur_item_costs) - 1)
+            data = cur_item_costs[random_data_index]
+
+            data.increase_cost()
+            item_cost_threshold += 1
+            if data.cost >= maximum_item_cost:
+                max_item_costs.append(data)
+                cur_item_costs.pop(random_data_index)
+
+        self.item_costs = {}
+        for data in [*max_item_costs, *cur_item_costs]:
+            self.item_costs.setdefault(data.block, []).append(data)
 
     def create_items(self) -> None:
-        items_to_create = self.world_count * self.encrypted_items
-        extra_pharcoins_to_create = self.extra_pharcoins.value
-        while extra_pharcoins_to_create > 0:
-            extra = self.multiworld.random.choice([1, 2])
-            if extra_pharcoins_to_create == 1 or extra == 1:
-                self.multiworld.itempool.append(self.create_item("2 Pharcoins"))
-            else:
-                self.multiworld.itempool.append(self.create_item("3 Pharcoins"))
+        number_of_blocks = getattr(self.multiworld, "number_of_item_blocks")[self.player].value
+        number_of_items = getattr(self.multiworld, "number_of_items_per_block")[self.player].value * number_of_blocks
+        maximum_item_cost = getattr(self.multiworld, "maximum_pharcoin_cost")[self.player].value
+        extra_pharcoins = getattr(self.multiworld, "extra_pharcoins_per_player")[self.player].value * self.players
+        final_total_cost = self.total_item_cost + extra_pharcoins
 
-            extra_pharcoins_to_create -= extra
-            items_to_create -= 1
+        item_pool: List[PharcryptionItem] = [self.create_item("1 Pharcoin") for _ in range(number_of_items)]
+        max_cost_item_pool: List[PharcryptionItem] = []
+        current_point_threshold = number_of_items
+        while current_point_threshold < final_total_cost:
+            random_item_index = self.random.randint(0, len(item_pool) - 1)
+            item = item_pool[random_item_index]
 
-        self.multiworld.itempool += [self.create_item("1 Pharcoin") for _ in range(items_to_create)]
+            # Increase item size.
+            item.code += 1
+            if item.name == "1 Pharcoin":
+                item.name = "2 Pharcoins"
+            elif item.name == "2 Pharcoins":
+                item.name = "3 Pharcoins"
+            elif item.name == "3 Pharcoins":
+                item.name = "4 Pharcoins"
+            elif item.name == "4 Pharcoins":
+                item.name = "5 Pharcoins"
+
+            # Remove this item from our "increment" pool when an item reaches the maximum value.
+            if item.name == "5 Pharcoins":
+                max_cost_item_pool.append(item)
+                item_pool.pop(random_item_index)
+
+            # Increment Point Threshold
+            current_point_threshold += 1
+
+        # Add to item pool.
+        self.multiworld.itempool += max_cost_item_pool
+        self.multiworld.itempool += item_pool
 
     def create_regions(self) -> None:
-        # Generate all locations and region.
-        locations = {
-            f"Encrypted Item #{i + 1}": GAME_ID_OFFSET + i for i in range(self.encrypted_items * self.world_count)
-        }
-        region = Region("Menu", self.player, self.multiworld)
-        region.add_locations(locations, PharcryptionLocation)
-        self.multiworld.regions.append(region)
+        number_of_blocks = getattr(self.multiworld, "number_of_item_blocks")[self.player].value
+        number_of_items_per_block = getattr(self.multiworld, "number_of_items_per_block")[self.player].value
 
-        # Set all locations to priority and pre-hint everything.
-        self.multiworld.priority_locations[self.player].value = set(locations)
-        self.multiworld.start_location_hints[self.player].value = set(locations)
+        menu_region = Region("Menu", self.player, self.multiworld)
+        previous_region = menu_region
 
-    def get_filler_item_name(self) -> str:
-        raise NotImplementedError("Pharcryption does not support creating filler items.")
+        self.multiworld.regions.append(menu_region)
+        for block in range(number_of_blocks):
+            block_region = Region(f"Block {block + 1}", self.player, self.multiworld)
+            previous_region.connect(
+                block_region,
+                None,
+                lambda state, b=block:
+                    self._get_pharcoin_count(state, self.player) >= sum(d.cost for d in self.item_costs.get(b - 1, []))
+            )
+
+            locations = {}
+            for item in range(number_of_items_per_block):
+                location_name = f"Encrypted Item {item + 1} in Block {block + 1}"
+                locations[location_name] = self.location_name_to_id[location_name]
+
+            previous_region = block_region
+            block_region.add_locations(locations)
+            self.multiworld.regions.append(block_region)
 
     def set_rules(self) -> None:
-        # Generate each batch of locations in their own "sphere".
-        locations = self.multiworld.get_locations(self.player)
-        for i in range(len(locations)):
-            requirement = self.payment_amount * ((i // self.payment_amount) + 1)
-            locations[i].access_rule = lambda state, r=requirement: self._has_pharcoins(state, self.player, r)
+        final_block = getattr(self.multiworld, "number_of_item_blocks")[self.player].value - 1
+        self.multiworld.completion_condition[self.player] = lambda state: (
+            self._get_pharcoin_count(state, self.player) >= sum(data.cost for data in self.item_costs[final_block])
+        )
 
-        # Game is only completed when you have all the pharcoins required.
-        self.multiworld.completion_condition[self.player] = \
-            lambda state: self._has_pharcoins(state, self.player, self.world_count * self.encrypted_items)
+    def fill_slot_data(self) -> Dict[str, Any]:
+        use_time_limit = bool(getattr(self.multiworld, "enable_time_limit")[self.player])
+        slot_data = {
+            "percentage": getattr(self.multiworld, "required_percentage_of_items_decrypted_for_block_unlock")[self.player].value,
+            "password": getattr(self.multiworld, "starting_password")[self.player].value,
+            "timelimit": getattr(self.multiworld, "time_limit_in_minutes")[self.player].value if use_time_limit else 0,
+            "item_costs": {}
+        }
+
+        for block, _list in self.item_costs.items():
+            slot_data["item_costs"][block] = {}
+            for index, data in enumerate(_list, 0):
+                location_id = ID_OFFSET + (block * 100) + index
+                item = self.multiworld.get_location(self.location_id_to_name[location_id], self.player).item
+                slot_data["item_costs"][block][location_id] = {
+                    "id": item.code,
+                    "player": item.player,
+                    "cost": data.cost,
+                }
+
+        return slot_data
+
+    @staticmethod
+    def _get_pharcoin_count(state: CollectionState, player: int) -> int:
+        return state.count("1 Pharcoin", player) + \
+               state.count("2 Pharcoins", player) * 2 + \
+               state.count("3 Pharcoins", player) * 3 + \
+               state.count("4 Pharcoins", player) * 4 + \
+               state.count("5 Pharcoins", player) * 5
