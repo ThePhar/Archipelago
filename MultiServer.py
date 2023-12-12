@@ -981,7 +981,7 @@ def send_items_in_bag(ctx: Context):
 
         for item in items_to_send:
             item_id, target_player, flags = ctx.locations[item.player][item.location]
-            target_players.add(ctx.player_names[(0, target_player)])
+            target_players.append(ctx.player_names[(0, target_player)])
             logging.info('(Team #%d) Gifted %s to %s (%s)' % (
                 0, ctx.item_names[item.item], ctx.player_names[(0, target_player)], ctx.location_names[item.location]))
             send_items_to(ctx, 0, target_player, item)
