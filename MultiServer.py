@@ -183,6 +183,7 @@ class Context:
 
     PACKAGE_SIZE = 5
     PACKAGE_DELAY = 20.0
+    DOWN_MAX_TIME = 30.0
 
     def __init__(self, host: str, port: int, server_password: str, password: str, location_check_points: int,
                  hint_cost: int, item_cheat: bool, release_mode: str = "disabled", collect_mode="disabled",
