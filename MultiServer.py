@@ -176,6 +176,14 @@ class Context:
     all_location_and_group_names: typing.Dict[str, typing.Set[str]]
     non_hintable_names: typing.Dict[str, typing.Set[str]]
 
+    # Santa Custom Stuff
+    queued_items: typing.List[NetworkItem] = []
+    santa_shot_down: typing.Optional[datetime.datetime] = None
+    priority_players = collections.Counter()
+
+    PACKAGE_SIZE = 5
+    PACKAGE_DELAY = 5.0
+
     def __init__(self, host: str, port: int, server_password: str, password: str, location_check_points: int,
                  hint_cost: int, item_cheat: bool, release_mode: str = "disabled", collect_mode="disabled",
                  remaining_mode: str = "disabled", auto_shutdown: typing.SupportsFloat = 0, compatibility: int = 2,
@@ -840,6 +848,7 @@ async def countdown(ctx: Context, timer: int):
             await asyncio.sleep(1)
         ctx.broadcast_text_all(f"[Server]: GO", {"type": "Countdown", "countdown": 0})
         ctx.countdown_timer = 0
+        threading.Timer(ctx.PACKAGE_DELAY, send_items_in_bag, kwargs={"ctx": ctx}).start()
 
 
 def get_players_string(ctx: Context):
@@ -901,6 +910,24 @@ def send_new_items(ctx: Context):
                     client.send_index = len(start_inventory) + len(items)
 
 
+def send_new_items_special(ctx: Context):
+    for team, clients in ctx.clients.items():
+        for slot, clients in clients.items():
+            for client in clients:
+                if client.no_items:
+                    continue
+                start_inventory = get_start_inventory(ctx, slot, client.remote_start_inventory)
+                items = get_received_items(ctx, team, slot, client.remote_items)
+                if len(start_inventory) + len(items) > client.send_index:
+                    first_new_item = max(0, client.send_index - len(start_inventory))
+                    asyncio.run(ctx.send_msgs(client, [{
+                        "cmd": "ReceivedItems",
+                        "index": client.send_index,
+                        "items": start_inventory[client.send_index:] + items[first_new_item:]}]))
+                    client.send_index = len(start_inventory) + len(items)
+
+
+
 def update_checked_locations(ctx: Context, team: int, slot: int):
     ctx.broadcast(ctx.clients[team][slot],
                   [{"cmd": "RoomUpdate", "checked_locations": get_checked_checks(ctx, team, slot)}])
@@ -940,6 +967,49 @@ def get_remaining(ctx: Context, team: int, slot: int) -> typing.List[int]:
     return ctx.locations.get_remaining(ctx.location_checks, team, slot)
 
 
+def send_items_in_bag(ctx: Context):
+    random_priority_players = [player_id for player_id, count in ctx.priority_players.items() if count > 0]
+    random.shuffle(random_priority_players)
+    if random_priority_players:
+        # Do something for priority players.
+        pass
+    else:
+        random.shuffle(ctx.queued_items)
+        items_to_send = ctx.queued_items[:ctx.PACKAGE_SIZE] if len(ctx.queued_items) > ctx.PACKAGE_SIZE else ctx.queued_items
+        ctx.queued_items = ctx.queued_items[ctx.PACKAGE_SIZE:] if len(ctx.queued_items) > ctx.PACKAGE_SIZE else []
+        target_players = []
+
+        for item in items_to_send:
+            item_id, target_player, flags = ctx.locations[item.player][item.location]
+            target_players.add(ctx.player_names[(0, target_player)])
+            logging.info('(Team #%d) Gifted %s to %s (%s)' % (
+                0, ctx.item_names[item.item], ctx.player_names[(0, target_player)], ctx.location_names[item.location]))
+            send_items_to(ctx, 0, target_player, item)
+
+    send_special_bounce(ctx, {
+        "type": "GiftReceived",
+        "players": target_players
+    })
+    send_new_items_special(ctx)
+    ctx.save()
+
+    threading.Timer(ctx.PACKAGE_DELAY, send_items_in_bag, kwargs={"ctx": ctx}).start()
+
+
+def send_special_bounce(ctx: Context, data: dict):
+    for bounce_client in ctx.endpoints:
+        if ctx.games[bounce_client.slot] != "Pharcryption 2":
+            continue
+
+        args = {
+            "cmd": "Bounced",
+            "games": "Pharcryption 2",
+            "data": data
+        }
+
+        asyncio.run(ctx.send_encoded_msgs(bounce_client, ctx.dumper([args])))
+
+
 def send_items_to(ctx: Context, team: int, target_slot: int, *items: NetworkItem):
     for target in ctx.slot_set(target_slot):
         for item in items:
@@ -958,7 +1028,8 @@ def register_location_checks(ctx: Context, team: int, slot: int, locations: typi
         for location in new_locations:
             item_id, target_player, flags = ctx.locations[slot][location]
             new_item = NetworkItem(item_id, location, slot, flags)
-            send_items_to(ctx, team, target_player, new_item)
+            # send_items_to(ctx, team, target_player, new_item)
+            ctx.queued_items.append(new_item)
 
             logging.info('(Team #%d) %s sent %s to %s (%s)' % (
                 team + 1, ctx.player_names[(team, slot)], ctx.item_names[item_id],
@@ -967,7 +1038,6 @@ def register_location_checks(ctx: Context, team: int, slot: int, locations: typi
             ctx.broadcast_team(team, [info_text])
 
         ctx.location_checks[team, slot] |= new_locations
-        send_new_items(ctx)
         ctx.broadcast(ctx.clients[team][slot], [{
             "cmd": "RoomUpdate",
             "hint_points": get_slot_points(ctx, team, slot),
@@ -1029,10 +1099,11 @@ def json_format_send_event(net_item: NetworkItem, receiving_player: int):
         NetUtils.add_json_text(parts, " found their ")
         NetUtils.add_json_item(parts, net_item.item, net_item.player, net_item.flags)
     else:
-        NetUtils.add_json_text(parts, " sent ")
-        NetUtils.add_json_item(parts, net_item.item, receiving_player, net_item.flags)
-        NetUtils.add_json_text(parts, " to ")
+        NetUtils.add_json_text(parts, " gave Santa ")
         NetUtils.add_json_text(parts, receiving_player, type=NetUtils.JSONTypes.player_id)
+        NetUtils.add_json_text(parts, "'s ")
+        NetUtils.add_json_item(parts, net_item.item, receiving_player, net_item.flags)
+        NetUtils.add_json_text(parts, " to deliver later. ")
 
     NetUtils.add_json_text(parts, " (")
     NetUtils.add_json_location(parts, net_item.location, net_item.player)
