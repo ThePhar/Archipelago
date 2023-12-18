@@ -337,7 +337,7 @@ class Context:
     def broadcast_all(self, msgs: typing.List[dict]):
         msgs = self.dumper(msgs)
         endpoints = (endpoint for endpoint in self.endpoints if endpoint.auth)
-        asyncio.run(self.broadcast_send_encoded_msgs(endpoints, msgs))
+        async_start(self.broadcast_send_encoded_msgs(endpoints, msgs))
 
     def broadcast_text_all(self, text: str, additional_arguments: dict = {}):
         logging.info("Notice (all): %s" % text)
@@ -346,7 +346,7 @@ class Context:
     def broadcast_team(self, team: int, msgs: typing.List[dict]):
         msgs = self.dumper(msgs)
         endpoints = (endpoint for endpoint in itertools.chain.from_iterable(self.clients[team].values()))
-        asyncio.run(self.broadcast_send_encoded_msgs(endpoints, msgs))
+        async_start(self.broadcast_send_encoded_msgs(endpoints, msgs))
 
     def broadcast(self, endpoints: typing.Iterable[Client], msgs: typing.List[dict]):
         msgs = self.dumper(msgs)
@@ -989,18 +989,22 @@ def send_items_in_bag(ctx: Context):
             ctx.naughty_players[target_player] -= 1
             ctx.queued_items.append(item)
             logging.info('Gifted Coal to %s' % (ctx.player_names[(0, target_player)]))
-            ctx.broadcast_all([json_format_send_coal(
+            msgs = ctx.dumper([json_format_send_coal(
                 NetworkItem(0o31_000002, -1, target_player, 0b0100)
             )])
+            endpoints = (endpoint for endpoint in itertools.chain.from_iterable(ctx.clients[0].values()))
+            asyncio.run(ctx.broadcast_send_encoded_msgs(endpoints, msgs))
         else:
             final_items_to_send.append(item)
             target_players.append(ctx.player_names[(0, target_player)])
             logging.info('(Team #%d) Gifted %s to %s (%s)' % (
                 0, ctx.item_names[item.item], ctx.player_names[(0, target_player)], ctx.location_names[item.location]))
             send_items_to(ctx, 0, target_player, item)
-            ctx.broadcast_all([json_format_send_item(
+            msgs = ctx.dumper([json_format_send_item(
                 item, target_player
             )])
+            endpoints = (endpoint for endpoint in itertools.chain.from_iterable(ctx.clients[0].values()))
+            asyncio.run(ctx.broadcast_send_encoded_msgs(endpoints, msgs))
 
     send_special_bounce(ctx, {
         "type": "GiftReceived",
