@@ -337,7 +337,7 @@ class Context:
     def broadcast_all(self, msgs: typing.List[dict]):
         msgs = self.dumper(msgs)
         endpoints = (endpoint for endpoint in self.endpoints if endpoint.auth)
-        async_start(self.broadcast_send_encoded_msgs(endpoints, msgs))
+        asyncio.run(self.broadcast_send_encoded_msgs(endpoints, msgs))
 
     def broadcast_text_all(self, text: str, additional_arguments: dict = {}):
         logging.info("Notice (all): %s" % text)
