@@ -15,12 +15,14 @@ class SantaItem(Item):
 class SantaWorld(World):
     """A cool game."""
     game = BASE_GAME_NAME
+    hidden = True
     location_name_to_id = {
         "Dummy Location":     BASE_ID_OFFSET + 0,
     }
     item_name_to_id = {
         "Milk & Cookies":     BASE_ID_OFFSET + 0,
         "The Christmas Slay": BASE_ID_OFFSET + 1,
+        "Lump of Coal":       BASE_ID_OFFSET + 2,
     }
 
     def create_item(self, name) -> SantaItem:

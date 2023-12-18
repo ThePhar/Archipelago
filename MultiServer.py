@@ -180,6 +180,7 @@ class Context:
     queued_items: typing.List[NetworkItem] = []
     santa_shot_down: typing.Optional[datetime.datetime] = None
     priority_players = collections.Counter()
+    naughty_players = collections.Counter()
 
     PACKAGE_SIZE = 5
     PACKAGE_DELAY = 20.0
@@ -973,23 +974,33 @@ def send_items_in_bag(ctx: Context):
         threading.Timer(ctx.PACKAGE_DELAY, send_items_in_bag, kwargs={"ctx": ctx}).start()
         return
 
+    target_players = []
     random_priority_players = [player_id for player_id, count in ctx.priority_players.items() if count > 0]
     random.shuffle(random_priority_players)
-    if random_priority_players:
-        # Do something for priority players.
-        pass
-    else:
-        random.shuffle(ctx.queued_items)
-        items_to_send = ctx.queued_items[:ctx.PACKAGE_SIZE] if len(ctx.queued_items) > ctx.PACKAGE_SIZE else ctx.queued_items
-        ctx.queued_items = ctx.queued_items[ctx.PACKAGE_SIZE:] if len(ctx.queued_items) > ctx.PACKAGE_SIZE else []
-        target_players = []
 
-        for item in items_to_send:
-            item_id, target_player, flags = ctx.locations[item.player][item.location]
+    random.shuffle(ctx.queued_items)
+    items_to_send = ctx.queued_items[:ctx.PACKAGE_SIZE] if len(ctx.queued_items) > ctx.PACKAGE_SIZE else ctx.queued_items
+    ctx.queued_items = ctx.queued_items[ctx.PACKAGE_SIZE:] if len(ctx.queued_items) > ctx.PACKAGE_SIZE else []
+
+    final_items_to_send = []
+    for item in items_to_send:
+        item_id, target_player, flags = ctx.locations[item.player][item.location]
+        if ctx.naughty_players[target_player] > 0:
+            ctx.naughty_players[target_player] -= 1
+            ctx.queued_items.append(item)
+            logging.info('Gifted Coal to %s' % (ctx.player_names[(0, target_player)]))
+            ctx.broadcast_all([json_format_send_coal(
+                NetworkItem(0o31_000002, -1, target_player, 0b0100)
+            )])
+        else:
+            final_items_to_send.append(item)
             target_players.append(ctx.player_names[(0, target_player)])
             logging.info('(Team #%d) Gifted %s to %s (%s)' % (
                 0, ctx.item_names[item.item], ctx.player_names[(0, target_player)], ctx.location_names[item.location]))
             send_items_to(ctx, 0, target_player, item)
+            ctx.broadcast_all([json_format_send_item(
+                item, target_player
+            )])
 
     send_special_bounce(ctx, {
         "type": "GiftReceived",
@@ -1034,6 +1045,9 @@ def register_location_checks(ctx: Context, team: int, slot: int, locations: typi
             item_id, target_player, flags = ctx.locations[slot][location]
             new_item = NetworkItem(item_id, location, slot, flags)
             # send_items_to(ctx, team, target_player, new_item)
+            if flags & 0b0100:
+                ctx.naughty_players[slot] += 1
+
             if ctx.slot_info[target_player].game == "Pharcryption 2":
                 send_items_to(ctx, team, target_player, new_item)
                 ctx.location_checks[team, slot] |= new_locations
@@ -1122,6 +1136,28 @@ def json_format_send_event(net_item: NetworkItem, receiving_player: int):
     return {"cmd": "PrintJSON", "data": parts, "type": "ItemSend",
             "receiving": receiving_player,
             "item": net_item}
+
+
+def json_format_send_coal(net_item: NetworkItem):
+    parts = []
+    NetUtils.add_json_text(parts, "Santa sent ")
+    NetUtils.add_json_text(parts, net_item.player, type=NetUtils.JSONTypes.player_id)
+    NetUtils.add_json_text(parts, " a lump of coal for being very naughty!")
+
+    return {"cmd": "PrintJSON", "data": parts, "type": "ItemSend",
+            "receiving": net_item.player, "item": net_item}
+
+
+def json_format_send_item(net_item: NetworkItem, receiving_player: int):
+    parts = []
+    NetUtils.add_json_text(parts, "Santa sent ")
+    NetUtils.add_json_text(parts, receiving_player, type=NetUtils.JSONTypes.player_id)
+    NetUtils.add_json_text(parts, " their ")
+    NetUtils.add_json_item(parts, net_item.item, receiving_player, net_item.flags)
+    NetUtils.add_json_text(parts, "!")
+
+    return {"cmd": "PrintJSON", "data": parts, "type": "ItemSend",
+            "receiving": net_item.player, "item": net_item}
 
 
 def get_intended_text(input_text: str, possible_answers) -> typing.Tuple[str, bool, str]:
@@ -1852,11 +1888,16 @@ async def process_client_cmd(ctx: Context, client: Client, args: dict):
             args["cmd"] = "Bounced"
             msg = ctx.dumper([args])
 
+            logging.info(f"Bounce Received. Tags: {tags}")
+
             if "SantaResume" in tags:
                 ctx.santa_shot_down = None
+                logging.info("Santa Resume Received")
             elif "SantaStop" in tags:
                 ctx.santa_shot_down = datetime.datetime.now()
+                logging.info("Santa Stop Received")
             else:
+                logging.info("Other Bounce")
                 for bounceclient in ctx.endpoints:
                     if client.team == bounceclient.team and (ctx.games[bounceclient.slot] in games or
                                                              set(bounceclient.tags) & tags or
