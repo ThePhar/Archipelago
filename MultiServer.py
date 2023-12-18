@@ -969,6 +969,10 @@ def get_remaining(ctx: Context, team: int, slot: int) -> typing.List[int]:
 
 
 def send_items_in_bag(ctx: Context):
+    if ctx.santa_shot_down:
+        threading.Timer(ctx.PACKAGE_DELAY, send_items_in_bag, kwargs={"ctx": ctx}).start()
+        return
+
     random_priority_players = [player_id for player_id, count in ctx.priority_players.items() if count > 0]
     random.shuffle(random_priority_players)
     if random_priority_players:
@@ -1030,7 +1034,12 @@ def register_location_checks(ctx: Context, team: int, slot: int, locations: typi
             item_id, target_player, flags = ctx.locations[slot][location]
             new_item = NetworkItem(item_id, location, slot, flags)
             # send_items_to(ctx, team, target_player, new_item)
-            ctx.queued_items.append(new_item)
+            if ctx.slot_info[target_player].game == "Pharcryption 2":
+                send_items_to(ctx, team, target_player, new_item)
+                ctx.location_checks[team, slot] |= new_locations
+                send_new_items(ctx)
+            else:
+                ctx.queued_items.append(new_item)
 
             logging.info('(Team #%d) %s sent %s to %s (%s)' % (
                 team + 1, ctx.player_names[(team, slot)], ctx.item_names[item_id],
@@ -1843,11 +1852,16 @@ async def process_client_cmd(ctx: Context, client: Client, args: dict):
             args["cmd"] = "Bounced"
             msg = ctx.dumper([args])
 
-            for bounceclient in ctx.endpoints:
-                if client.team == bounceclient.team and (ctx.games[bounceclient.slot] in games or
-                                                         set(bounceclient.tags) & tags or
-                                                         bounceclient.slot in slots):
-                    await ctx.send_encoded_msgs(bounceclient, msg)
+            if "SantaResume" in tags:
+                ctx.santa_shot_down = None
+            elif "SantaStop" in tags:
+                ctx.santa_shot_down = datetime.datetime.now()
+            else:
+                for bounceclient in ctx.endpoints:
+                    if client.team == bounceclient.team and (ctx.games[bounceclient.slot] in games or
+                                                             set(bounceclient.tags) & tags or
+                                                             bounceclient.slot in slots):
+                        await ctx.send_encoded_msgs(bounceclient, msg)
 
         elif cmd == "Get":
             if "keys" not in args or type(args["keys"]) != list:
