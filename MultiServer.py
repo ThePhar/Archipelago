@@ -182,9 +182,9 @@ class Context:
     priority_players = collections.Counter()
     naughty_players = collections.Counter()
 
-    PACKAGE_SIZE = 5
-    PACKAGE_DELAY = 20.0
-    DOWN_MAX_TIME = 30.0
+    PACKAGE_SIZE = 1
+    PACKAGE_DELAY = 10.0
+    DOWN_MAX_TIME = 600.0
 
     def __init__(self, host: str, port: int, server_password: str, password: str, location_check_points: int,
                  hint_cost: int, item_cheat: bool, release_mode: str = "disabled", collect_mode="disabled",
