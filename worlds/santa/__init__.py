@@ -48,7 +48,7 @@ class SantaWorld(World):
 
             item_pool: List[SantaItem] = []
             item_pool += [SantaItem("Milk & Cookies", ItemClassification.useful, cls.item_name_to_id["Milk & Cookies"], santa_world) for _ in range(5)]
-            item_pool += [SantaItem("The Christmas Slay", ItemClassification.trap, cls.item_name_to_id["The Christmas Slay"], santa_world) for _ in range(2)]
+            item_pool += [SantaItem("Anti-Capitalism Missile", ItemClassification.trap, cls.item_name_to_id["Anti-Capitalism Missile"], santa_world) for _ in range(2)]
 
             location_pool = location_pool[:len(item_pool)]
 
@@ -60,4 +60,4 @@ class SantaWorld(World):
             )
 
     def get_filler_item_name(self) -> str:
-        return "The Christmas Slay"
+        return "Anti-Capitalism Missile"
