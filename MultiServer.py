@@ -984,31 +984,30 @@ def send_items_in_bag(ctx: Context):
     random_priority_players = [player_id for player_id, count in ctx.priority_players.items() if count > 0]
     random.shuffle(random_priority_players)
 
-    random.shuffle(ctx.queued_items)
+    # random.shuffle(ctx.queued_items)
+    #
+    # random_player = random_priority_players[0] if random_priority_players else None
+    # random_item = None
+    # if random_player is not None:
+    #     temp_queue = []
+    #     while len(ctx.queued_items) > 0:
+    #         item = ctx.queued_items.pop(0)
+    #         item_id, target_player, flags = ctx.locations[item.player][item.location]
+    #         if target_player == random_player:
+    #             random_item = item
+    #             break
+    #         else:
+    #             temp_queue.append(item)
+    #
+    #     ctx.queued_items += temp_queue
+    #     if random_item:
+    #         ctx.priority_players[random_player] -= 1
 
-    random_player = random_priority_players[0] if random_priority_players else None
-    random_item = None
-    if random_player is not None:
-        temp_queue = []
-        while len(ctx.queued_items) > 0:
-            item = ctx.queued_items.pop(0)
-            item_id, target_player, flags = ctx.locations[item.player][item.location]
-            if target_player == random_player:
-                random_item = item
-                break
-            else:
-                temp_queue.append(item)
-
-        ctx.queued_items += temp_queue
-        if random_item:
-            ctx.priority_players[random_player] -= 1
-
-    if not random_item:
-        items_to_send = ctx.queued_items[:ctx.PACKAGE_SIZE] if len(
-            ctx.queued_items) > ctx.PACKAGE_SIZE else ctx.queued_items
-        ctx.queued_items = ctx.queued_items[ctx.PACKAGE_SIZE:] if len(ctx.queued_items) > ctx.PACKAGE_SIZE else []
-    else:
-        items_to_send = [random_item]
+    # if not random_item:
+    items_to_send = ctx.queued_items[:ctx.PACKAGE_SIZE] if len(ctx.queued_items) > ctx.PACKAGE_SIZE else ctx.queued_items
+    ctx.queued_items = ctx.queued_items[ctx.PACKAGE_SIZE:] if len(ctx.queued_items) > ctx.PACKAGE_SIZE else []
+    # else:
+    #     items_to_send = [random_item]
 
     final_items_to_send = []
     for item in items_to_send:
@@ -1937,8 +1936,6 @@ async def process_client_cmd(ctx: Context, client: Client, args: dict):
             args["cmd"] = "Bounced"
             msg = ctx.dumper([args])
 
-            logging.info(f"Bounce Received. Tags: {tags}")
-
             if "SantaResume" in tags:
                 ctx.santa_shot_down = None
                 logging.info("Santa Resume Received")
@@ -1960,7 +1957,6 @@ async def process_client_cmd(ctx: Context, client: Client, args: dict):
                     if ctx.games[bounce_client.slot] == "Pharcryption 2":
                         await ctx.send_encoded_msgs(bounce_client, msg)
             else:
-                logging.info("Other Bounce")
                 for bounceclient in ctx.endpoints:
                     if client.team == bounceclient.team and (ctx.games[bounceclient.slot] in games or
                                                              set(bounceclient.tags) & tags or
