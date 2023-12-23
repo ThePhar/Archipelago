@@ -1156,9 +1156,14 @@ def format_hint(ctx: Context, team: int, hint: NetUtils.Hint) -> str:
 def json_format_send_event(net_item: NetworkItem, receiving_player: int):
     parts = []
     NetUtils.add_json_text(parts, net_item.player, type=NetUtils.JSONTypes.player_id)
-    if net_item.player == receiving_player:
+    if net_item.item in [0o31_000000, 0o31_000001]:
+        NetUtils.add_json_text(parts, " sent Santa ")
+        NetUtils.add_json_item(parts, net_item.item, net_item.player, net_item.flags)
+        NetUtils.add_json_text(parts, ". ")
+    elif net_item.player == receiving_player:
         NetUtils.add_json_text(parts, " wrote to Santa for ")
         NetUtils.add_json_item(parts, net_item.item, net_item.player, net_item.flags)
+        NetUtils.add_json_text(parts, ". ")
     else:
         NetUtils.add_json_text(parts, " requested Santa deliver their gift of ")
         NetUtils.add_json_item(parts, net_item.item, receiving_player, net_item.flags)
