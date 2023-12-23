@@ -1943,6 +1943,13 @@ async def process_client_cmd(ctx: Context, client: Client, args: dict):
             elif "DeathLink" in tags:
                 if client.slot:
                     ctx.naughty_players[client.slot] += 1
+                    source = args["data"].get("source", "")
+                    cause = args["data"].get("cause", "")
+                    if source:
+                        if cause:
+                            client.messageprocessor(f"{source} is on the naughty list because they killed a reindeer with DeathLink: {cause}")
+                        else:
+                            client.messageprocessor(f"{source} is on the naughty list because they killed a reindeer with DeathLink.")
 
                 for bounce_client in ctx.endpoints:
                     if ctx.games[bounce_client.slot] == "Pharcryption 2":
