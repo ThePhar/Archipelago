@@ -20,9 +20,9 @@ class SantaWorld(World):
         "Dummy Location":     BASE_ID_OFFSET + 0,
     }
     item_name_to_id = {
-        "Milk & Cookies":     BASE_ID_OFFSET + 0,
-        "The Christmas Slay": BASE_ID_OFFSET + 1,
-        "Lump of Coal":       BASE_ID_OFFSET + 2,
+        "Milk & Cookies":          BASE_ID_OFFSET + 0,
+        "Anti-Capitalism Missile": BASE_ID_OFFSET + 1,
+        "Lump of Coal":            BASE_ID_OFFSET + 2,
     }
 
     def create_item(self, name) -> SantaItem:

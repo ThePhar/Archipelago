@@ -974,13 +974,41 @@ def send_items_in_bag(ctx: Context):
         threading.Timer(ctx.PACKAGE_DELAY, send_items_in_bag, kwargs={"ctx": ctx}).start()
         return
 
+    santa_slot = 0
+    for slot, info in ctx.slot_info.items():
+        if info.game == "Pharcryption 2":
+            santa_slot = slot
+            break
+
     target_players = []
     random_priority_players = [player_id for player_id, count in ctx.priority_players.items() if count > 0]
     random.shuffle(random_priority_players)
 
     random.shuffle(ctx.queued_items)
-    items_to_send = ctx.queued_items[:ctx.PACKAGE_SIZE] if len(ctx.queued_items) > ctx.PACKAGE_SIZE else ctx.queued_items
-    ctx.queued_items = ctx.queued_items[ctx.PACKAGE_SIZE:] if len(ctx.queued_items) > ctx.PACKAGE_SIZE else []
+
+    random_player = random_priority_players[0] if random_priority_players else None
+    random_item = None
+    if random_player is not None:
+        temp_queue = []
+        while len(ctx.queued_items) > 0:
+            item = ctx.queued_items.pop(0)
+            item_id, target_player, flags = ctx.locations[item.player][item.location]
+            if target_player == random_player:
+                random_item = item
+                break
+            else:
+                temp_queue.append(item)
+
+        ctx.queued_items += temp_queue
+        if random_item:
+            ctx.priority_players[random_player] -= 1
+
+    if not random_item:
+        items_to_send = ctx.queued_items[:ctx.PACKAGE_SIZE] if len(
+            ctx.queued_items) > ctx.PACKAGE_SIZE else ctx.queued_items
+        ctx.queued_items = ctx.queued_items[ctx.PACKAGE_SIZE:] if len(ctx.queued_items) > ctx.PACKAGE_SIZE else []
+    else:
+        items_to_send = [random_item]
 
     final_items_to_send = []
     for item in items_to_send:
@@ -990,7 +1018,8 @@ def send_items_in_bag(ctx: Context):
             ctx.queued_items.append(item)
             logging.info('Gifted Coal to %s' % (ctx.player_names[(0, target_player)]))
             msgs = ctx.dumper([json_format_send_coal(
-                NetworkItem(0o31_000002, -1, target_player, 0b0100)
+                NetworkItem(0o31_000002, -1, target_player, 0b0100),
+                santa_slot
             )])
             endpoints = (endpoint for endpoint in itertools.chain.from_iterable(ctx.clients[0].values()))
             asyncio.run(ctx.broadcast_send_encoded_msgs(endpoints, msgs))
@@ -1056,12 +1085,16 @@ def register_location_checks(ctx: Context, team: int, slot: int, locations: typi
                 send_items_to(ctx, team, target_player, new_item)
                 ctx.location_checks[team, slot] |= new_locations
                 send_new_items(ctx)
+                if new_item.item == 0o31_000000 + 0:
+                    ctx.priority_players[slot] += 1
+
             else:
                 ctx.queued_items.append(new_item)
 
             logging.info('(Team #%d) %s sent %s to %s (%s)' % (
                 team + 1, ctx.player_names[(team, slot)], ctx.item_names[item_id],
                 ctx.player_names[(team, target_player)], ctx.location_names[location]))
+
             info_text = json_format_send_event(new_item, target_player)
             ctx.broadcast_team(team, [info_text])
 
@@ -1124,14 +1157,14 @@ def json_format_send_event(net_item: NetworkItem, receiving_player: int):
     parts = []
     NetUtils.add_json_text(parts, net_item.player, type=NetUtils.JSONTypes.player_id)
     if net_item.player == receiving_player:
-        NetUtils.add_json_text(parts, " found their ")
+        NetUtils.add_json_text(parts, " wrote to Santa for ")
         NetUtils.add_json_item(parts, net_item.item, net_item.player, net_item.flags)
     else:
-        NetUtils.add_json_text(parts, " gave Santa ")
-        NetUtils.add_json_text(parts, receiving_player, type=NetUtils.JSONTypes.player_id)
-        NetUtils.add_json_text(parts, "'s ")
+        NetUtils.add_json_text(parts, " requested Santa deliver their gift of ")
         NetUtils.add_json_item(parts, net_item.item, receiving_player, net_item.flags)
-        NetUtils.add_json_text(parts, " to deliver later. ")
+        NetUtils.add_json_text(parts, " to ")
+        NetUtils.add_json_text(parts, receiving_player, type=NetUtils.JSONTypes.player_id)
+        NetUtils.add_json_text(parts, " later. ")
 
     NetUtils.add_json_text(parts, " (")
     NetUtils.add_json_location(parts, net_item.location, net_item.player)
@@ -1142,11 +1175,13 @@ def json_format_send_event(net_item: NetworkItem, receiving_player: int):
             "item": net_item}
 
 
-def json_format_send_coal(net_item: NetworkItem):
+def json_format_send_coal(net_item: NetworkItem, santa_slot: int):
     parts = []
     NetUtils.add_json_text(parts, "Santa sent ")
     NetUtils.add_json_text(parts, net_item.player, type=NetUtils.JSONTypes.player_id)
-    NetUtils.add_json_text(parts, " a lump of coal for being very naughty!")
+    NetUtils.add_json_text(parts, " a ")
+    NetUtils.add_json_item(parts, net_item.item, santa_slot, net_item.flags)
+    NetUtils.add_json_text(parts, " for being very naughty!")
 
     return {"cmd": "PrintJSON", "data": parts, "type": "ItemSend",
             "receiving": net_item.player, "item": net_item}
@@ -1387,6 +1422,11 @@ class ClientMessageProcessor(CommonCommandProcessor):
         Optionally mention a Tag name and get information on who has that Tag.
         For example: DeathLink or EnergyLink."""
         self.output(get_status_string(self.ctx, self.client.team, tag))
+        return True
+
+    def _cmd_bag(self) -> bool:
+        """Get the quantity of items in Santa's bag!"""
+        self.output(f"Santa has {len(self.ctx.queued_items)} {'item' if len(self.ctx.queued_items) == 1 else 'items'} in his bag!")
         return True
 
     def _cmd_release(self) -> bool:
@@ -1900,6 +1940,13 @@ async def process_client_cmd(ctx: Context, client: Client, args: dict):
             elif "SantaStop" in tags:
                 ctx.santa_shot_down = datetime.datetime.now()
                 logging.info("Santa Stop Received")
+            elif "DeathLink" in tags:
+                if client.slot:
+                    ctx.naughty_players[client.slot] += 1
+
+                for bounce_client in ctx.endpoints:
+                    if ctx.games[bounce_client.slot] == "Pharcryption 2":
+                        await ctx.send_encoded_msgs(bounce_client, msg)
             else:
                 logging.info("Other Bounce")
                 for bounceclient in ctx.endpoints:
@@ -1996,6 +2043,18 @@ class ServerCommandProcessor(CommonCommandProcessor):
         For example: DeathLink or EnergyLink."""
         for team in self.ctx.clients:
             self.output(get_status_string(self.ctx, team, tag))
+        return True
+
+    def _cmd_start(self):
+        """Start sending items."""
+        self.ctx.santa_shot_down = None
+        logging.info("Santa Started")
+        return True
+
+    def _cmd_stop(self):
+        """Stop sending items."""
+        self.ctx.santa_shot_down = datetime.datetime.now()
+        logging.info("Santa Stopped")
         return True
 
     def _cmd_exit(self) -> bool:
