@@ -1,0 +1,3 @@
+[submodule "worlds/template_world"]
+	path = worlds/template_world
+	url = git@github.com:ThePhar/APWorldTemplate.git
