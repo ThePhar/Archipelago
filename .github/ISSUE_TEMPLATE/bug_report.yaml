@@ -15,7 +15,7 @@ body:
         ### Disclaimer for Individual World Reports
 
 
-        This form should only be used in relation to core Archipelago components. All bug reports or requests for 
+        This form should only be used in relation to core Archipelago components. All bug reports or requests in/for 
         individual worlds (games) should instead be relayed to the maintainer(s) of the world itself.
 
 
@@ -34,10 +34,12 @@ body:
       description: >-
         What version of Archipelago was this problem detected in?
 
-        - If running from source, include the current commit hash (`git rev-parse HEAD` returns the current hash; e.g., `f06e565`).
-        
-        - If running from a RC, include the RC number, in addition to the version number (e.g., `0.5.0 RC2`).
-      placeholder: 0.5.0
+
+        - If running from a RC, include the RC number, in addition to the version number.
+
+        - If running from source, include the commit hash (`git rev-parse HEAD` returns the current HEAD's hash; 
+        e.g., `f06e565`).
+      placeholder: e.g., 0.4.6 / 0.5.0 RC2 / f06e565
     validations:
       required: true
   - type: dropdown
@@ -75,8 +77,9 @@ body:
     attributes:
       label: Logs & Additional Files
       description: >-
-        Include any applicable logs, spoiler outputs, or other files that were outputted or used in relation to this 
-        problem, if applicable. 
+        Include any applicable logs, YAML files, spoiler outputs, or other files that were outputted or used in relation
+        to this problem, if applicable.
+        
         
         - If the problem occurred locally, you can find these logs in your Archipelago directory by clicking 
         `Browse Files` in the Archipelago Launcher and navigating to the `logs` directory.
