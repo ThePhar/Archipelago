@@ -11,22 +11,26 @@ body:
         Thanks for taking the time to fill out a bug report! If this problem occurred during local generation, check
         your Archipelago install for a log and upload it with this report, as well as any YAML files used.
         
-        ### Note
+        
+        ### Disclaimer for Individual World Reports
 
-        This form should only be used in relation to core Archipelago components. All bug reports or feature requests 
-        for individual worlds (games) should instead be relayed to the maintainer(s) of the world itself.
+
+        This form should only be used in relation to core Archipelago components. All bug reports or requests for 
+        individual worlds (games) should instead be relayed to the maintainer(s) of the world itself.
+
 
         For games currently in this repository, check the website's supported games page for a link to submit bug 
         reports for the game, if present, or submit a bug report in our [Discord](https://discord.gg/archipelago)
         server's [#bug-reports](https://discord.com/channels/731205301247803413/1009605416428257360) forum and ping the 
         relevant maintainers.
         
+        
         A list of maintainers for each world (game) in this repository is also documented in our 
         [CODEOWNERS](https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/CODEOWNERS) documentation.
   - type: input
     id: version
     attributes:
-      label: Archipelago Version / Operating System
+      label: Archipelago Version
       description: >-
         What version of Archipelago was this problem detected in?
 
@@ -74,5 +78,5 @@ body:
         Include any applicable logs, spoiler outputs, or other files that were outputted or used in relation to this 
         problem, if applicable. 
         
-        If the problem occurred locally, you can find these logs in your Archipelago directory by clicking `Browse Files`
-        in the Archipelago Launcher and navigating to the `logs` directory.
+        - If the problem occurred locally, you can find these logs in your Archipelago directory by clicking 
+        `Browse Files` in the Archipelago Launcher and navigating to the `logs` directory.
