@@ -37,8 +37,7 @@ body:
 
         - If running from a RC, include the RC number, in addition to the version number.
 
-        - If running from source, include the commit hash (`git rev-parse HEAD` returns the current HEAD's hash; 
-        e.g., `f06e565`).
+        - If running from source, include the commit hash (`git rev-parse HEAD` returns the current HEAD's hash).
       placeholder: e.g., 0.4.6 / 0.5.0 RC2 / f06e565
     validations:
       required: true
