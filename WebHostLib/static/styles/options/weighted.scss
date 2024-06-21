@@ -1,0 +1,196 @@
+@import "../markdown.css";
+@import "./shared.scss";
+
+html {
+    background-image: url('../../static/backgrounds/grass.png');
+    background-repeat: repeat;
+    background-size: 650px 650px;
+    scroll-padding-top: 90px;
+}
+
+#weighted-options {
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    padding: 1rem;
+    color: #eeffeb;
+
+    .js-warning-banner {
+        width: calc(100% - 1rem);
+        padding: 0.5rem;
+        border-radius: 4px;
+        background-color: #f3f309;
+        color: #000000;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .game-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .weighted-options-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        &.deletable {
+            .weighted-options-row {
+                grid-template-columns: 4fr 5fr 24px;
+            }
+        }
+
+        .weighted-options-row {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 4fr 5fr;
+            gap: 0.5rem;
+            height: 24px;
+
+            .range-option-delete {
+                cursor: pointer;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+    }
+
+    .option-wrapper {
+        width: 100%;
+        margin-bottom: 2rem;
+        font-size: 1rem;
+
+        input, select {
+            box-sizing: border-box;
+        }
+
+        .option-description {
+            margin: 0 0 1rem;
+        }
+
+        .hint-text {
+            margin: 0 0 1rem;
+        }
+
+        .add-option-div, .custom-value-wrapper {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            margin-bottom: 1rem;
+            gap: 0.25rem;
+            height: 24px;
+
+            input:not([type]) {
+                min-width: 200px;
+            }
+
+            input[type=number] {
+                width: calc(8ch + 1.5rem);
+            }
+
+            button {
+                width: auto;
+                height: auto;
+                margin: 0 0 0 0.15rem;
+                padding: 0 0.25rem;
+                border-radius: 4px;
+                cursor: default;
+
+                &:active {
+                    margin-bottom: 1px;
+                }
+            }
+        }
+    }
+
+    #weighted-options-button-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin-top: 15px;
+    }
+
+    details summary.h2 {
+        font-size: 2rem;
+        font-weight: normal;
+        border-bottom: 1px solid #ffffff;
+        width: 100%;
+        margin-bottom: 0.5rem;
+        color: #ffe993;
+        text-transform: none;
+        text-shadow: 1px 1px 2px #000000;
+    }
+
+    h4 {
+        border-bottom: 1px solid white;
+        padding-bottom: 0.5rem;
+    }
+
+    h3, h4, h5, h6 {
+        color: #ffffff;
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+        text-transform: none;
+        cursor: unset;
+    }
+
+    input:not([type]) {
+        border: 1px solid #000000;
+        padding: 3px;
+        border-radius: 3px;
+
+        &:focus {
+            border: 1px solid #ffffff;
+        }
+    }
+
+    .invisible {
+        display: none;
+    }
+
+    .unsupported-option {
+        margin-top: 0.5rem;
+    }
+}
+
+.hidden {
+    display: none;
+}
+
+@media all and (max-width: 1024px) {
+    #weighted-options {
+        .game-options {
+            grid-template-columns: 1fr;
+        }
+
+        .option-wrapper {
+            font-size: 1.25rem;
+
+            input, select {
+                height: 32px;
+                padding: 3px 6px;
+            }
+
+            .add-option-div, .custom-value-wrapper {
+                margin-bottom: 2rem;
+
+                input[type=number] {
+                    width: calc(8ch + 3.5rem)
+                }
+
+                button {
+                    height: 32px;
+                    width: 64px;
+                }
+            }
+        }
+
+        .weighted-options-group {
+            gap: 0.5rem;
+        }
+    }
+}

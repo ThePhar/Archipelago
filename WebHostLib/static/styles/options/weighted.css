@@ -1,0 +1,372 @@
+@charset "UTF-8";
+@import "../markdown.css";
+#player-options #user-message, #weighted-options #user-message {
+  display: none;
+  width: calc(100% - 8px);
+  background-color: #ffe86b;
+  border-radius: 4px;
+  color: #000000;
+  padding: 4px;
+  text-align: center;
+}
+#player-options #user-message.visible, #weighted-options #user-message.visible {
+  display: block;
+  cursor: pointer;
+}
+#player-options #options-button-row, #weighted-options #options-button-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: right;
+  margin-top: 1rem;
+  gap: 1rem;
+}
+#player-options #meta-options, #weighted-options #meta-options {
+  margin-bottom: 1rem;
+  column-count: 2;
+  column-gap: 1rem;
+}
+#player-options #options-header, #weighted-options #options-header {
+  margin-bottom: 1.5rem;
+}
+#player-options #options-header p, #player-options #options-header ul, #weighted-options #options-header p, #weighted-options #options-header ul {
+  font-size: 1.25rem;
+  text-align: justify;
+}
+#player-options #options-header h1, #weighted-options #options-header h1 {
+  font-size: 3rem;
+  font-weight: normal;
+  width: 100%;
+  text-shadow: 1px 1px 4px #000000;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+#player-options #options-header h2, #weighted-options #options-header h2 {
+  font-family: LondrinaSolid-Regular, sans-serif;
+  text-transform: uppercase;
+  font-size: 1.4rem;
+  margin-top: -8px;
+  margin-bottom: 0.5rem;
+}
+#player-options .group-container, #weighted-options .group-container {
+  padding: 0;
+  margin: 0;
+}
+#player-options .group-container summary, #weighted-options .group-container summary {
+  font-size: 2rem;
+  color: var(--accent-color);
+  text-shadow: 1px 1px 2px #000000;
+  padding-bottom: 0.5rem;
+}
+#player-options .group-container > summary, #weighted-options .group-container > summary {
+  list-style-type: "⯈ ";
+}
+#player-options .group-container[open] > summary, #weighted-options .group-container[open] > summary {
+  list-style-type: "⯆ ";
+  border-bottom-width: 1px;
+}
+#player-options .group-container h3, #weighted-options .group-container h3 {
+  color: var(--accent-color);
+  font-size: 2rem;
+  display: inline;
+  font-family: LondrinaSolid-Light, sans-serif;
+  text-transform: none;
+  font-weight: normal;
+  width: 100%;
+  user-select: none;
+  cursor: unset;
+  margin: 0;
+}
+#player-options .group-container label, #weighted-options .group-container label {
+  cursor: pointer;
+}
+#player-options .option-container, #weighted-options .option-container {
+  margin-bottom: 0.5rem;
+  display: grid;
+  grid-template-columns: 4fr minmax(200px, 5fr);
+  grid-gap: 0.5rem;
+  grid-auto-rows: min-content;
+  align-items: start;
+  min-width: 480px;
+  width: 100%;
+}
+#player-options .option-container input, #player-options .option-container select, #weighted-options .option-container input, #weighted-options .option-container select {
+  box-sizing: border-box;
+  border: 1px solid #000000;
+  background-color: #ffffff;
+  padding: 3px;
+  border-radius: 3px;
+  height: 24px;
+}
+#player-options .option-container input[disabled], #player-options .option-container select[disabled], #weighted-options .option-container input[disabled], #weighted-options .option-container select[disabled] {
+  background-color: rgb(211, 211, 211);
+}
+#player-options .option-container input:not([type]), #weighted-options .option-container input:not([type]) {
+  min-width: 150px;
+}
+#player-options .option-container input:not([type]):focus, #weighted-options .option-container input:not([type]):focus {
+  border: 1px solid #ffffff;
+}
+#player-options .option-container select, #weighted-options .option-container select {
+  min-width: 150px;
+  text-overflow: ellipsis;
+}
+#player-options .option-container label, #weighted-options .option-container label {
+  font-size: 1rem;
+}
+#player-options .option-container:nth-child(2), #weighted-options .option-container:nth-child(2) {
+  flex-grow: 1;
+}
+#player-options .range-container, #weighted-options .range-container {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+#player-options .range-container input[type=range], #weighted-options .range-container input[type=range] {
+  flex-grow: 1;
+  width: 36px;
+}
+#player-options .option-list, #weighted-options .option-list {
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--accent-color-muted);
+  border-radius: 3px;
+  color: #ffffff;
+  min-height: 10rem;
+  height: 10rem;
+  min-width: 14.5rem;
+  overflow-y: auto;
+  resize: vertical;
+}
+#player-options .option-list .option-divider, #weighted-options .option-list .option-divider {
+  width: 100%;
+  height: 2px;
+  background-color: var(--accent-color-muted);
+  margin-top: 0.125rem;
+  margin-bottom: 0.125rem;
+}
+#player-options .option-list .option-entry, #weighted-options .option-list .option-entry {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  user-select: none;
+  padding: 0.125rem 0.25rem;
+}
+#player-options .option-list .option-entry:hover, #weighted-options .option-list .option-entry:hover {
+  background-color: var(--accent-color-muted);
+}
+#player-options .option-list .option-entry input[type=checkbox], #weighted-options .option-list .option-entry input[type=checkbox] {
+  margin-right: 0.25rem;
+  height: 20px;
+}
+#player-options .option-list .option-entry input[type=number], #weighted-options .option-list .option-entry input[type=number] {
+  max-width: 2rem;
+  margin-left: 0.125rem;
+  text-align: center;
+  /* Hide arrows on input[type=number] fields */
+  -moz-appearance: textfield;
+}
+#player-options .option-list .option-entry input[type=number]::-webkit-outer-spin-button, #player-options .option-list .option-entry input[type=number]::-webkit-inner-spin-button, #weighted-options .option-list .option-entry input[type=number]::-webkit-outer-spin-button, #weighted-options .option-list .option-entry input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+#player-options .option-list .option-entry label, #weighted-options .option-list .option-entry label {
+  flex-grow: 1;
+  margin-left: 0.25rem;
+  min-height: 20px;
+}
+
+@media all and (max-width: 1024px) {
+  #player-options #meta-options, #weighted-options #meta-options {
+    column-count: 1;
+  }
+  #player-options .option-container, #weighted-options .option-container {
+    grid-template-columns: 4fr 5fr;
+  }
+  #player-options .option-container input, #player-options .option-container select, #weighted-options .option-container input, #weighted-options .option-container select {
+    height: 32px;
+    padding: 3px 6px;
+  }
+  #player-options .option-container label, #weighted-options .option-container label {
+    font-size: 1.25rem;
+  }
+  #player-options .option-container .randomize-button, #weighted-options .option-container .randomize-button {
+    width: 32px;
+    height: 32px;
+  }
+  #player-options .option-list, #weighted-options .option-list {
+    min-height: 18rem;
+    height: 18rem;
+  }
+  #player-options .option-list .option-entry input[type=checkbox], #weighted-options .option-list .option-entry input[type=checkbox] {
+    height: 30px;
+  }
+  #player-options .option-list .option-entry label, #weighted-options .option-list .option-entry label {
+    flex-grow: 1;
+    margin-left: 0.25rem;
+    min-height: 30px;
+  }
+}
+html {
+  background-image: url("../../static/backgrounds/grass.png");
+  background-repeat: repeat;
+  background-size: 650px 650px;
+  scroll-padding-top: 90px;
+}
+
+#weighted-options {
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 1rem;
+  color: #eeffeb;
+}
+#weighted-options .js-warning-banner {
+  width: calc(100% - 1rem);
+  padding: 0.5rem;
+  border-radius: 4px;
+  background-color: #f3f309;
+  color: #000000;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+#weighted-options .game-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+#weighted-options .weighted-options-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+#weighted-options .weighted-options-group.deletable .weighted-options-row {
+  grid-template-columns: 4fr 5fr 24px;
+}
+#weighted-options .weighted-options-group .weighted-options-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 4fr 5fr;
+  gap: 0.5rem;
+  height: 24px;
+}
+#weighted-options .weighted-options-group .weighted-options-row .range-option-delete {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#weighted-options .option-wrapper {
+  width: 100%;
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+#weighted-options .option-wrapper input, #weighted-options .option-wrapper select {
+  box-sizing: border-box;
+}
+#weighted-options .option-wrapper .option-description {
+  margin: 0 0 1rem;
+}
+#weighted-options .option-wrapper .hint-text {
+  margin: 0 0 1rem;
+}
+#weighted-options .option-wrapper .add-option-div, #weighted-options .option-wrapper .custom-value-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+  gap: 0.25rem;
+  height: 24px;
+}
+#weighted-options .option-wrapper .add-option-div input:not([type]), #weighted-options .option-wrapper .custom-value-wrapper input:not([type]) {
+  min-width: 200px;
+}
+#weighted-options .option-wrapper .add-option-div input[type=number], #weighted-options .option-wrapper .custom-value-wrapper input[type=number] {
+  width: calc(8ch + 1.5rem);
+}
+#weighted-options .option-wrapper .add-option-div button, #weighted-options .option-wrapper .custom-value-wrapper button {
+  width: auto;
+  height: auto;
+  margin: 0 0 0 0.15rem;
+  padding: 0 0.25rem;
+  border-radius: 4px;
+  cursor: default;
+}
+#weighted-options .option-wrapper .add-option-div button:active, #weighted-options .option-wrapper .custom-value-wrapper button:active {
+  margin-bottom: 1px;
+}
+#weighted-options #weighted-options-button-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+#weighted-options details summary.h2 {
+  font-size: 2rem;
+  font-weight: normal;
+  border-bottom: 1px solid #ffffff;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  color: #ffe993;
+  text-transform: none;
+  text-shadow: 1px 1px 2px #000000;
+}
+#weighted-options h4 {
+  border-bottom: 1px solid white;
+  padding-bottom: 0.5rem;
+}
+#weighted-options h3, #weighted-options h4, #weighted-options h5, #weighted-options h6 {
+  color: #ffffff;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+  text-transform: none;
+  cursor: unset;
+}
+#weighted-options input:not([type]) {
+  border: 1px solid #000000;
+  padding: 3px;
+  border-radius: 3px;
+}
+#weighted-options input:not([type]):focus {
+  border: 1px solid #ffffff;
+}
+#weighted-options .invisible {
+  display: none;
+}
+#weighted-options .unsupported-option {
+  margin-top: 0.5rem;
+}
+
+.hidden {
+  display: none;
+}
+
+@media all and (max-width: 1024px) {
+  #weighted-options .game-options {
+    grid-template-columns: 1fr;
+  }
+  #weighted-options .option-wrapper {
+    font-size: 1.25rem;
+  }
+  #weighted-options .option-wrapper input, #weighted-options .option-wrapper select {
+    height: 32px;
+    padding: 3px 6px;
+  }
+  #weighted-options .option-wrapper .add-option-div, #weighted-options .option-wrapper .custom-value-wrapper {
+    margin-bottom: 2rem;
+  }
+  #weighted-options .option-wrapper .add-option-div input[type=number], #weighted-options .option-wrapper .custom-value-wrapper input[type=number] {
+    width: calc(8ch + 3.5rem);
+  }
+  #weighted-options .option-wrapper .add-option-div button, #weighted-options .option-wrapper .custom-value-wrapper button {
+    height: 32px;
+    width: 64px;
+  }
+  #weighted-options .weighted-options-group {
+    gap: 0.5rem;
+  }
+}
+
+/*# sourceMappingURL=weighted.css.map */
