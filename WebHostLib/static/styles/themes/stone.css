@@ -1,3 +1,8 @@
+:root {
+    --accent-color: rgb(170, 215, 156);
+    --accent-color-muted: rgba(170, 215, 156, 0.2);
+}
+
 html{
     background-image: url('../../static/backgrounds/stone.png');
     background-repeat: repeat;
@@ -21,7 +26,7 @@ h1{
 }
 
 h2{
-    color: #aad79c;
+    color: var(--accent-color);
 }
 
 h3, h4, h5,h6{

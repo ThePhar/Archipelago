@@ -1,3 +1,8 @@
+:root {
+    --accent-color: rgb(90, 255, 106);
+    --accent-color-muted: rgba(90, 255, 106, 0.2);
+}
+
 html{
     background-image: url("../../static/backgrounds/grass.png");
     background-repeat: repeat;
@@ -21,7 +26,7 @@ h1{
 }
 
 h2{
-    color: #5aff6a;
+    color: var(--accent-color);
 }
 
 h3, h4, h5,h6{

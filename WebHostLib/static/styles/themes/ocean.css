@@ -1,3 +1,8 @@
+:root {
+    --accent-color: rgb(147, 220, 255);
+    --accent-color-muted: rgba(147, 220, 255, 0.2);
+}
+
 html{
     background-image: url('../../static/backgrounds/ocean.png');
     background-repeat: repeat;
@@ -21,7 +26,7 @@ h1{
 }
 
 h2{
-    color: #93dcff;
+    color: var(--accent-color);
 }
 
 h3, h4, h5,h6{

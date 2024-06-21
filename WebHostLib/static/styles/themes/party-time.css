@@ -1,3 +1,8 @@
+:root {
+    --accent-color: rgb(255, 88, 132);
+    --accent-color-muted: rgba(255, 88, 132, 0.2);
+}
+
 html{
     background-image: url("../../static/backgrounds/party-time.png");
     background-repeat: repeat;
@@ -21,7 +26,7 @@ h1{
 }
 
 h2{
-    color: #ff5884;
+    color: var(--accent-color);
 }
 
 h3, h4, h5,h6{

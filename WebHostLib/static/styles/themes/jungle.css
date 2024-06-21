@@ -1,3 +1,8 @@
+:root {
+    --accent-color: rgb(123, 223, 39);
+    --accent-color-muted: rgba(123, 223, 39, 0.2);
+}
+
 html{
     background-image: url("../../static/backgrounds/jungle.png");
     background-repeat: repeat;
@@ -21,7 +26,7 @@ h1{
 }
 
 h2{
-    color: #7bdf27;
+    color: var(--accent-color);
 }
 
 h3, h4, h5,h6{
