@@ -73,15 +73,6 @@
             padding-bottom: 0.5rem;
         }
 
-        & > summary {
-            list-style-type: "⯈ ";
-        }
-
-        &[open] > summary {
-            list-style-type: "⯆ ";
-            border-bottom-width: 1px;
-        }
-
         h3 {
             color: var(--accent-color);
             font-size: 2rem;
