@@ -1,20 +1,23 @@
 .nobr {
     white-space: nowrap;
+
+    .tooltip {
+        white-space: normal;
+    }
 }
 
 #player-options, #weighted-options {
-    #user-message {
-        display: none;
-        width: calc(100% - 8px);
-        background-color: #ffe86b;
+    .alert {
+        width: calc(100% - 1rem);
         border-radius: 4px;
+        background-color: #f3f309;
         color: #000000;
-        padding: 4px;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
         text-align: center;
 
-        &.visible {
-            display: block;
-            cursor: pointer;
+        &:empty {
+            display: none;
         }
     }
 
@@ -63,6 +66,7 @@
         margin: 0;
 
         summary {
+            cursor: pointer;
             font-size: 2rem;
             color: var(--accent-color);
             text-shadow: 1px 1px 2px #000000;
@@ -87,7 +91,6 @@
             font-weight: normal;
             width: 100%;
             user-select: none;
-            cursor: unset;
             margin: 0;
         }
 

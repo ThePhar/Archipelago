@@ -2,8 +2,11 @@
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
         <div class="option-subcontainer">
-            <select id="{{ option_name }}" name="{{ option_name }}" {{ "disabled" if option.default == "random" }}>
-                {% if option.default == 1 %}
+            <select
+                id="{{ option_name }}"
+                name="{{ option_name }}"
+            >
+                {% if option.default %}
                     <option value="false">No</option>
                     <option value="true" selected>Yes</option>
                 {% else %}
@@ -20,7 +23,10 @@
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
         <div class="option-subcontainer">
-            <select id="{{ option_name }}" name="{{ option_name }}" {{ "disabled" if option.default == "random" }}>
+            <select
+                id="{{ option_name }}"
+                name="{{ option_name }}"
+            >
                 {% for id, name in option.name_lookup.items() %}
                     {% if name != "random" %}
                         {% if option.default == id %}
@@ -44,7 +50,6 @@
                 type="range"
                 class="js-required"
                 id="{{ option_name }}-range"
-                name="{{ option_name }}"
                 min="{{ option.range_start }}"
                 max="{{ option.range_end }}"
                 value="{{ option.default | default(option.range_start) if option.default != "random" else option.range_start }}"
@@ -52,10 +57,13 @@
             <input
                 type="number"
                 id="{{ option_name }}"
+                name="{{ option_name }}"
                 value="{{ option.default | default(option.range_start) if option.default != "random" else option.range_start }}"
                 min="{{ option.range_start }}"
                 max="{{ option.range_end }}"
                 placeholder="{{ option.range_start }} - {{ option.range_end }}"
+                data-option-type="range"
+                required
             >
             {{ RandomizeButton(option_name, option) }}
         </div>
@@ -67,15 +75,18 @@
         {{ OptionTitle(option_name, option) }}
         <div class="option-group">
             <div class="option-subcontainer">
-                <select class="js-required" id="{{ option_name }}-select" data-option-name="{{ option_name }}" {{ "disabled" if option.default == "random" }}>
-                    {% for key, val in option.special_range_names.items() %}
-                        {% if option.default == val %}
-                            <option value="{{ val }}" selected>{{ key|replace("_", " ")|title }} ({{ val }})</option>
+                <select class="js-required" id="{{ option_name }}-select">
+                    {% set default_in_special_names = False %}
+                    {% for key, value in option.special_range_names.items() %}
+                        {% if option.default == value %}
+                            {% set default_in_special_names = True %}
+                            <option value="{{ value }}" selected>{{ key | replace("_", " ") | title }} ({{ value }})</option>
                         {% else %}
-                            <option value="{{ val }}">{{ key|replace("_", " ")|title }} ({{ val }})</option>
+                            <option value="{{ value }}">{{ key | replace("_", " ") | title }} ({{ value }})</option>
                         {% endif %}
                     {% endfor %}
-                    <option value="custom" hidden>Custom</option>
+
+                    <option value="custom" hidden {{ "selected" if not default_in_special_names }}>Custom</option>
                 </select>
             </div>
             <div class="option-subcontainer">
@@ -83,7 +94,6 @@
                     type="range"
                     id="{{ option_name }}-range"
                     class="js-required"
-                    name="{{ option_name }}"
                     min="{{ option.range_start }}"
                     max="{{ option.range_end }}"
                     value="{{ option.default | default(option.range_start) if option.default != "random" else option.range_start }}"
@@ -91,8 +101,11 @@
                 <input
                     type="number"
                     id="{{ option_name }}"
+                    name="{{ option_name }}"
                     value="{{ option.default | default(option.range_start) if option.default != "random" else option.range_start }}"
-                    placeholder="{{ option.range_start }} - {{ option.range_end }}"
+                    placeholder="{{ option.range_start }} - {{ option.range_end }}{{ special_values }}"
+                    data-option-type="named-range"
+                    required
                 >
                 {{ RandomizeButton(option_name, option) }}
             </div>
@@ -104,7 +117,12 @@
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
         <div class="option-subcontainer">
-            <input type="text" id="{{ option_name }}" name="{{ option_name }}" value="{{ option.default }}" >
+            <input
+                type="text"
+                id="{{ option_name }}"
+                name="{{ option_name }}"
+                value="{{ option.default }}"
+            >
         </div>
     </div>
 {% endmacro %}
@@ -114,8 +132,13 @@
         {{ OptionTitle(option_name, option) }}
         <div class="option-group">
             <div class="option-subcontainer">
-                <select id="{{ option_name }}" name="{{ option_name }}" {{ "disabled" if option.default == "random" }}>
-                {% for id, name in option.name_lookup.items()|sort %}
+                <select
+                    id="{{ option_name }}"
+                    name="{{ option_name }}"
+                    class="option"
+                    data-default="{{ option.get_option_name(option.default) if option.default != "random" else "random" }}"
+                >
+                {% for id, name in option.name_lookup.items() | sort %}
                     {% if name != "random" %}
                         {% if option.default == id %}
                             <option value="{{ name }}" selected>{{ option.get_option_name(id) }}</option>
@@ -128,7 +151,14 @@
             </select>
             {{ RandomizeButton(option_name, option) }}
             </div>
-            <input type="text" id="{{ option_name }}-custom" name="{{ option_name }}-custom" data-option-name="{{ option_name }}" placeholder="Custom value..." >
+            <input
+                type="text"
+                id="{{ option_name }}-custom"
+                name="{{ option_name }}-custom"
+                placeholder="Custom value..."
+                data-option-name="{{ option_name }}"
+                data-option-type="text-choice"
+            >
         </div>
     </div>
 {% endmacro %}
@@ -137,10 +167,18 @@
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
         <div class="option-list">
-            {% for item_name in (option.valid_keys|sort if (option.valid_keys|length > 0) else world.item_names|sort) %}
+            {% for item_name in (option.valid_keys | sort if (option.valid_keys | length > 0) else world.item_names | sort) %}
                 <div class="option-entry">
                     <label for="{{ option_name }}-{{ item_name }}-qty">{{ item_name }}</label>
-                    <input type="number" id="{{ option_name }}-{{ item_name }}-qty" name="{{ option_name }}||{{ item_name }}||qty" value="{{ option.default[item_name]|default("0") }}" data-option-name="{{ option_name }}" data-item-name="{{ item_name }}" >
+                    <input
+                        type="number"
+                        id="{{ option_name }}-{{ item_name }}-qty"
+                        class="option"
+                        name="{{ option_name }}||{{ item_name }}||qty"
+                        value="{{ option.default[item_name] | default("0") }}"
+                        data-option-name="{{ option_name }}"
+                        data-item-name="{{ item_name }}"
+                    >
                 </div>
             {% endfor %}
         </div>
@@ -151,9 +189,15 @@
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
         <div class="option-list">
-            {% for key in (option.valid_keys if option.valid_keys is ordered else option.valid_keys|sort) %}
+            {% for key in (option.valid_keys if option.valid_keys is ordered else option.valid_keys | sort) %}
                 <div class="option-entry">
-                    <input type="checkbox" id="{{ option_name }}-{{ key }}" name="{{ option_name }}" value="{{ key }}" {{ "checked" if key in option.default }} >
+                    <input
+                        type="checkbox"
+                        id="{{ option_name }}-{{ key }}"
+                        name="{{ option_name }}"
+                        value="{{ key }}"
+                        {{ "checked" if key in option.default }}
+                    >
                     <label for="{{ option_name }}-{{ key }}">{{ key }}</label>
                 </div>
             {% endfor %}
@@ -165,20 +209,32 @@
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
         <div class="option-list">
-            {% for group_name in world.location_name_groups.keys()|sort %}
+            {% for group_name in world.location_name_groups.keys() | sort %}
                 {% if group_name != "Everywhere" %}
                     <div class="option-entry">
-                        <input type="checkbox" id="{{ option_name }}-{{ group_name }}" name="{{ option_name }}" value="{{ group_name }}" {{ "checked" if group_name in option.default }} >
+                        <input
+                            type="checkbox"
+                            id="{{ option_name }}-{{ group_name }}"
+                            name="{{ option_name }}"
+                            value="{{ group_name }}"
+                            {{ "checked" if group_name in option.default }}
+                        >
                         <label for="{{ option_name }}-{{ group_name }}">{{ group_name }}</label>
                     </div>
                 {% endif %}
             {% endfor %}
-            {% if world.location_name_groups.keys()|length > 1 %}
+            {% if world.location_name_groups.keys() | length > 1 %}
                 <div class="option-divider">&nbsp;</div>
             {% endif %}
-            {% for location_name in (option.valid_keys|sort if (option.valid_keys|length > 0) else world.location_names|sort) %}
+            {% for location_name in (option.valid_keys | sort if (option.valid_keys | length > 0) else world.location_names | sort) %}
                 <div class="option-entry">
-                    <input type="checkbox" id="{{ option_name }}-{{ location_name }}" name="{{ option_name }}" value="{{ location_name }}" {{ "checked" if location_name in option.default }} >
+                    <input
+                        type="checkbox"
+                        id="{{ option_name }}-{{ location_name }}"
+                        name="{{ option_name }}"
+                        value="{{ location_name }}"
+                        {{ "checked" if location_name in option.default }}
+                    >
                     <label for="{{ option_name }}-{{ location_name }}">{{ location_name }}</label>
                 </div>
             {% endfor %}
@@ -190,20 +246,32 @@
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
         <div class="option-list">
-            {% for group_name in world.item_name_groups.keys()|sort %}
+            {% for group_name in world.item_name_groups.keys() | sort %}
                 {% if group_name != "Everything" %}
                     <div class="option-entry">
-                        <input type="checkbox" id="{{ option_name }}-{{ group_name }}" name="{{ option_name }}" value="{{ group_name }}" {{ "checked" if group_name in option.default }} >
+                        <input
+                            type="checkbox"
+                            id="{{ option_name }}-{{ group_name }}"
+                            name="{{ option_name }}"
+                            value="{{ group_name }}"
+                            {{ "checked" if group_name in option.default }}
+                        >
                         <label for="{{ option_name }}-{{ group_name }}">{{ group_name }}</label>
                     </div>
                 {% endif %}
             {% endfor %}
-            {% if world.item_name_groups.keys()|length > 1 %}
+            {% if world.item_name_groups.keys() | length > 1 %}
                 <div class="option-divider">&nbsp;</div>
             {% endif %}
-            {% for item_name in (option.valid_keys|sort if (option.valid_keys|length > 0) else world.item_names|sort) %}
+            {% for item_name in (option.valid_keys | sort if (option.valid_keys | length > 0) else world.item_names | sort) %}
                 <div class="option-entry">
-                    <input type="checkbox" id="{{ option_name }}-{{ item_name }}" name="{{ option_name }}" value="{{ item_name }}" {{ "checked" if item_name in option.default }} >
+                    <input
+                        type="checkbox"
+                        id="{{ option_name }}-{{ item_name }}"
+                        name="{{ option_name }}"
+                        value="{{ item_name }}"
+                        {{ "checked" if item_name in option.default }}
+                    >
                     <label for="{{ option_name }}-{{ item_name }}">{{ item_name }}</label>
                 </div>
             {% endfor %}
@@ -215,9 +283,15 @@
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
         <div class="option-list">
-            {% for key in (option.valid_keys if option.valid_keys is ordered else option.valid_keys|sort) %}
+            {% for key in (option.valid_keys if option.valid_keys is ordered else option.valid_keys | sort) %}
                 <div class="option-entry">
-                    <input type="checkbox" id="{{ option_name }}-{{ key }}" name="{{ option_name }}" value="{{ key }}" {{ "checked" if key in option.default }} >
+                    <input
+                        type="checkbox"
+                        id="{{ option_name }}-{{ key }}"
+                        name="{{ option_name }}"
+                        value="{{ key }}"
+                        {{ "checked" if key in option.default }}
+                    >
                     <label for="{{ option_name }}-{{ key }}">{{ key }}</label>
                 </div>
             {% endfor %}
@@ -227,17 +301,18 @@
 
 {% macro OptionTitle(option_name, option) %}
     <label for="{{ option_name }}">
-        {{ option.display_name|default(option_name) }}<span class="nobr">: <span
+        {{ option.display_name | default(option_name) }}<span class="nobr">: <span
             class="interactive tooltip-container"
             {% if not (option.rich_text_doc | default(world.web.rich_text_options_doc, true)) %}
-              data-tooltip="{{(option.__doc__ | default("Please document me!"))|replace("\n    ", "\n") | escape | trim}}"
-            {% endif %}>
-          (?)
-          {% if option.rich_text_doc | default(world.web.rich_text_options_doc, true) %}
-            <div class="tooltip">
-              {{ option.__doc__ | default("**Please document me!**") | rst_to_html | safe }}
-            </div>
-          {% endif %}
+              data-tooltip="{{ (option.__doc__ | default("Please document me!")) | replace("\n    ", "\n") | escape | trim }}"
+            {% endif %}
+        >
+            (?)
+            {% if option.rich_text_doc | default(world.web.rich_text_options_doc, true) %}
+                <div class="tooltip">
+                    {{ option.__doc__ | default("**Please document me!**") | rst_to_html | safe }}
+                </div>
+            {% endif %}
         </span></span>
     </label>
 {% endmacro %}
@@ -245,7 +320,14 @@
 {% macro RandomizeButton(option_name, option) %}
     <div class="randomize-button" data-tooltip="Choose a random value for this option!">
         <label for="random-{{ option_name }}">
-            <input type="checkbox" id="random-{{ option_name }}" name="random-{{ option_name }}" class="randomize-checkbox" data-option-name="{{ option_name }}" {{ "checked" if option.default == "random" }}>
+            <input
+                type="checkbox"
+                id="random-{{ option_name }}"
+                name="random-{{ option_name }}"
+                class="randomize-checkbox"
+                data-option-name="{{ option_name }}"
+                {{ "checked" if option.default == "random" }}
+            >
             🎲
         </label>
     </div>

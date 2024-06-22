@@ -8,9 +8,7 @@
         type="text/css"
         href="{{ url_for("static", filename="styles/options/player.css") }}"
     >
-    <script defer type="application/ecmascript" src="{{ url_for("static", filename="assets/md5.min.js") }}"></script>
-    <script defer type="application/ecmascript" src="{{ url_for("static", filename="assets/js-yaml.min.js") }}"></script>
-    <script defer type="application/ecmascript" src="{{ url_for("static", filename="assets/playerOptions.js") }}"></script>
+    <script defer type="application/ecmascript" src="{{ url_for("static", filename="assets/options/player.js") }}"></script>
 
     <noscript>
         <style>
@@ -21,16 +19,33 @@
     </noscript>
 {% endblock %}
 
+{% macro PlayerNameHelp() %}
+    <p>
+        Also known as your &ldquo;slot name&rdquo;, this is the name you use to connect with your game. Names larger
+        than 16 characters will be trimmed by the generator.
+    </p>
+    <p>
+        You can also include the following keywords surrounded by curly braces and the generator will replace it:
+    </p>
+    <ul>
+        <li><code>{player}</code> is replaced with your slot number.</li>
+        <li><code>{PLAYER}</code> is replaced with your slot number, if greater than 1.</li>
+        <li><code>{number}</code> is replaced with <em>n-th</em> instance of your name.</li>
+        <li><code>{NUMBER}</code> is replaced with <em>n-th</em> instance of your name, if greater than 1.</li>
+    </ul>
+{% endmacro %}
+
 {% block body %}
     {% include "header/" + theme + "Header.html" %}
     <div id="player-options" class="markdown" data-game="{{ world_name }}" data-presets="{{ presets }}">
         <noscript>
-            <div class="js-warning-banner">
+            <div class="alert">
                 This page has reduced functionality without JavaScript.
             </div>
         </noscript>
 
-        <div id="user-message">{{ message }}</div>
+        {# Used for JS alerts and Flask flash messages. #}
+        <div id="user-message" class="alert">{{ message }}</div>
 
         <div id="options-header">
             <h1>{{ world_name }}</h1>
@@ -59,13 +74,15 @@
                     <label for="player-name">
                         Player Name:
                         <span
-                            class="interactive"
-                            data-tooltip="This is the name you use to connect with your game. This is also known as your &ldquo;slot name&rdquo;."
+                            class="interactive tooltip-container"
                         >
                             (?)
+                            <div class="tooltip">
+                                 {{ PlayerNameHelp() | safe }}
+                            </div>
                         </span>
                     </label>
-                    <input id="player-name" placeholder="Player" name="name">
+                    <input id="player-name" placeholder="Player" name="name" required>
                 </div>
                 <div class="js-required option-container">
                     <label for="game-options-preset">
@@ -77,7 +94,7 @@
                             (?)
                         </span>
                     </label>
-                    <select id="game-options-preset" name="game-options-preset" disabled>
+                    <select id="game-options-preset" name="game-options-preset">
                         <option value="default">Default</option>
                         {% for preset_name in world.web.options_presets %}
                             <option value="{{ preset_name }}">{{ preset_name }}</option>

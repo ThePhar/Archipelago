@@ -3,19 +3,21 @@
 .nobr {
   white-space: nowrap;
 }
+.nobr .tooltip {
+  white-space: normal;
+}
 
-#player-options #user-message, #weighted-options #user-message {
-  display: none;
-  width: calc(100% - 8px);
-  background-color: #ffe86b;
+#player-options .alert, #weighted-options .alert {
+  width: calc(100% - 1rem);
   border-radius: 4px;
+  background-color: #f3f309;
   color: #000000;
-  padding: 4px;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
   text-align: center;
 }
-#player-options #user-message.visible, #weighted-options #user-message.visible {
-  display: block;
-  cursor: pointer;
+#player-options .alert:empty, #weighted-options .alert:empty {
+  display: none;
 }
 #player-options #options-button-row, #weighted-options #options-button-row {
   display: flex;
@@ -56,6 +58,7 @@
   margin: 0;
 }
 #player-options .group-container summary, #weighted-options .group-container summary {
+  cursor: pointer;
   font-size: 2rem;
   color: var(--accent-color);
   text-shadow: 1px 1px 2px #000000;
@@ -77,7 +80,6 @@
   font-weight: normal;
   width: 100%;
   user-select: none;
-  cursor: unset;
   margin: 0;
 }
 #player-options .group-container .interactive, #weighted-options .group-container .interactive {

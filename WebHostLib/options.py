@@ -9,7 +9,7 @@ import yaml
 from flask import redirect, render_template, request, Response
 
 import Options
-from Utils import local_path
+from Utils import local_path, get_file_safe_name
 from worlds.AutoWorld import AutoWorldRegister
 from . import app, cache
 from .generate import get_meta
@@ -58,7 +58,7 @@ def generate_game(options: Dict[str, Union[dict, str]]) -> Union[Response, str]:
 def send_yaml(player_name: str, formatted_options: dict) -> Response:
     response = Response(yaml.dump(formatted_options, sort_keys=False))
     response.headers["Content-Type"] = "text/yaml"
-    response.headers["Content-Disposition"] = f"attachment; filename={player_name}.yaml"
+    response.headers["Content-Disposition"] = f"attachment; filename={get_file_safe_name(player_name)}.yaml"
     return response
 
 
@@ -234,7 +234,7 @@ def generate_yaml(game: str):
         # Detect random-* keys and set their options accordingly
         for key, val in options.copy().items():
             if key.startswith("random-"):
-                options[key.removeprefix("random-")] = "random"
+                options[key[:len("random-")]] = "random"
                 del options[key]
 
         # Error checking
