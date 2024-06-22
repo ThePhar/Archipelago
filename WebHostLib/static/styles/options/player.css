@@ -240,6 +240,33 @@ html {
   column-count: 2;
   column-gap: 1rem;
 }
+#player-options .option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+#player-options .option-subcontainer {
+  display: flex;
+  flex-direction: row;
+}
+#player-options .option-subcontainer > *:not(:last-child) {
+  margin-right: 0.5rem;
+}
+#player-options .option-subcontainer select {
+  flex-grow: 1;
+  width: 0;
+}
+#player-options .option-subcontainer select:disabled {
+  background-color: lightgray;
+}
+#player-options .option-subcontainer input[type=number], #player-options .option-subcontainer input[type=text] {
+  flex-grow: 1;
+  width: 80px;
+  min-width: 80px;
+}
+#player-options .option-subcontainer input[type=range] {
+  flex-grow: 1;
+}
 #player-options .select-container {
   display: flex;
   flex-direction: row;
@@ -249,11 +276,6 @@ html {
 }
 #player-options .select-container select:disabled {
   background-color: lightgray;
-}
-#player-options .named-range-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
 }
 #player-options .free-text-container {
   display: flex;
@@ -281,7 +303,6 @@ html {
   justify-content: center;
   height: 24px;
   width: 28px;
-  margin: 0 0 0 0.25rem;
   font-size: 14px;
   box-sizing: border-box;
   border: 1px solid black;

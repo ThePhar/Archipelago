@@ -235,7 +235,7 @@
                     value="0"
                 {% endif %}
             >
-            <span id="{{ option_name }}||{{ value }}-value">
+            <span id="{{ option_name }}||{{ value }}-value" class="js-required">
                 {% if option.default == value or default_override == value %}
                     25
                 {% else %}
@@ -248,7 +248,7 @@
                 ❌
             </div>
         {% else %}
-            <div>{# This is empty on purpose. #}</div>
+            <div class="js-required">{# This is empty on purpose. #}</div>
         {% endif %}
     </div>
 {% endmacro %}
