@@ -1,3 +1,7 @@
+.nobr {
+    white-space: nowrap;
+}
+
 #player-options, #weighted-options {
     #user-message {
         display: none;
@@ -87,8 +91,8 @@
             margin: 0;
         }
 
-        label {
-            cursor: pointer;
+        .interactive {
+            cursor: help;
         }
     }
 
@@ -130,6 +134,8 @@
 
         label {
             font-size: 1rem;
+            min-height: 24px;
+            line-height: 24px;
         }
 
         &:nth-child(2) {
@@ -173,7 +179,7 @@
         .option-entry {
             display: flex;
             flex-direction: row;
-            align-items: center;
+            align-items: flex-start;
             user-select: none;
             padding: 0.125rem 0.25rem;
 

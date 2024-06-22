@@ -1,5 +1,9 @@
 @charset "UTF-8";
 @import "../markdown.css";
+.nobr {
+  white-space: nowrap;
+}
+
 #player-options #user-message, #weighted-options #user-message {
   display: none;
   width: calc(100% - 8px);
@@ -76,8 +80,8 @@
   cursor: unset;
   margin: 0;
 }
-#player-options .group-container label, #weighted-options .group-container label {
-  cursor: pointer;
+#player-options .group-container .interactive, #weighted-options .group-container .interactive {
+  cursor: help;
 }
 #player-options .option-container, #weighted-options .option-container {
   margin-bottom: 0.5rem;
@@ -112,6 +116,8 @@
 }
 #player-options .option-container label, #weighted-options .option-container label {
   font-size: 1rem;
+  min-height: 24px;
+  line-height: 24px;
 }
 #player-options .option-container:nth-child(2), #weighted-options .option-container:nth-child(2) {
   flex-grow: 1;
@@ -149,7 +155,7 @@
 #player-options .option-list .option-entry, #weighted-options .option-list .option-entry {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   user-select: none;
   padding: 0.125rem 0.25rem;
 }

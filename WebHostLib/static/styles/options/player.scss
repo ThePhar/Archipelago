@@ -62,48 +62,14 @@ html {
             flex-grow: 1;
             width: 80px;
             min-width: 80px;
+            box-sizing: border-box;
         }
 
         input[type=range] {
             flex-grow: 1;
-        }
-    }
-
-    .select-container {
-        display: flex;
-        flex-direction: row;
-
-        select {
-            flex-grow: 1;
-
-            &:disabled {
-                background-color: lightgray;
-            }
-        }
-    }
-
-    .free-text-container {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-
-        input[type=text] {
-            flex-grow: 1;
-        }
-    }
-
-    .text-choice-container {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-
-        .text-choice-wrapper {
-            display: flex;
-            flex-direction: row;
-
-            select, input {
-                flex-grow: 1;
-            }
+            box-sizing: border-box;
+            margin-top: 0;
+            margin-bottom: 0;
         }
     }
 
@@ -161,13 +127,6 @@ html {
         margin-right: 4px;
         cursor: default;
         word-break: break-word;
-    }
-
-    th, td {
-        border: none;
-        padding: 3px;
-        font-size: 17px;
-        vertical-align: top;
     }
 }
 

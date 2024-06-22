@@ -1,5 +1,9 @@
 @charset "UTF-8";
 @import "../markdown.css";
+.nobr {
+  white-space: nowrap;
+}
+
 #player-options #user-message, #weighted-options #user-message {
   display: none;
   width: calc(100% - 8px);
@@ -76,8 +80,8 @@
   cursor: unset;
   margin: 0;
 }
-#player-options .group-container label, #weighted-options .group-container label {
-  cursor: pointer;
+#player-options .group-container .interactive, #weighted-options .group-container .interactive {
+  cursor: help;
 }
 #player-options .option-container, #weighted-options .option-container {
   margin-bottom: 0.5rem;
@@ -112,6 +116,8 @@
 }
 #player-options .option-container label, #weighted-options .option-container label {
   font-size: 1rem;
+  min-height: 24px;
+  line-height: 24px;
 }
 #player-options .option-container:nth-child(2), #weighted-options .option-container:nth-child(2) {
   flex-grow: 1;
@@ -149,7 +155,7 @@
 #player-options .option-list .option-entry, #weighted-options .option-list .option-entry {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   user-select: none;
   padding: 0.125rem 0.25rem;
 }
@@ -263,39 +269,13 @@ html {
   flex-grow: 1;
   width: 80px;
   min-width: 80px;
+  box-sizing: border-box;
 }
 #player-options .option-subcontainer input[type=range] {
   flex-grow: 1;
-}
-#player-options .select-container {
-  display: flex;
-  flex-direction: row;
-}
-#player-options .select-container select {
-  flex-grow: 1;
-}
-#player-options .select-container select:disabled {
-  background-color: lightgray;
-}
-#player-options .free-text-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-#player-options .free-text-container input[type=text] {
-  flex-grow: 1;
-}
-#player-options .text-choice-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-#player-options .text-choice-container .text-choice-wrapper {
-  display: flex;
-  flex-direction: row;
-}
-#player-options .text-choice-container .text-choice-wrapper select, #player-options .text-choice-container .text-choice-wrapper input {
-  flex-grow: 1;
+  box-sizing: border-box;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 #player-options .randomize-button {
   display: flex;
@@ -343,12 +323,6 @@ html {
   margin-right: 4px;
   cursor: default;
   word-break: break-word;
-}
-#player-options th, #player-options td {
-  border: none;
-  padding: 3px;
-  font-size: 17px;
-  vertical-align: top;
 }
 
 @media all and (max-width: 1024px) {
