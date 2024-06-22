@@ -243,7 +243,7 @@ const choosePreset = (event) => {
     }
 
     document.querySelectorAll('#options-form input, #options-form select').forEach((input) => {
-        if (input.id === 'player-name') {
+        if (input.id === 'player-name' || input.type === 'submit') {
             return;
         }
 
