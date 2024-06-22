@@ -39,11 +39,13 @@ window.addEventListener('load', async () => {
             range.addEventListener('change', (event) => {
                 range.setCustomValidity('');
                 slider.value = event.target.value;
+                setNamedRange(option, range.value);
                 validateNamedRange(option);
             });
             slider.addEventListener('change', (event) => {
                 range.setCustomValidity('');
                 range.value = event.target.value;
+                setNamedRange(option, range.value);
             });
 
             /** @type {HTMLSelectElement} */
@@ -74,9 +76,6 @@ window.addEventListener('load', async () => {
             setRandomization(event.target.getAttribute('data-option-name'), event.target.checked);
         });
 
-        // Set current status.
-        console.log(button);
-        console.log(button.getAttribute('data-option-name'))
         setRandomization(button.getAttribute('data-option-name'), button.checked);
     }
 
