@@ -3,16 +3,27 @@ import json
 import os
 from textwrap import dedent
 from typing import Dict, Union
-from docutils.core import publish_parts
 
 import yaml
-from flask import redirect, render_template, request, Response
+from docutils.core import publish_parts
+from flask import Response, redirect, render_template, request
+from flask_wtf import FlaskForm
+from wtforms import SelectField, StringField
+from wtforms.validators import DataRequired
 
 import Options
-from Utils import local_path, get_file_safe_name
-from worlds.AutoWorld import AutoWorldRegister
+from Utils import get_file_safe_name, local_path
+from worlds.AutoWorld import AutoWorldRegister, World
 from . import app, cache
 from .generate import get_meta
+
+
+class PlayerOptionsForm(FlaskForm):
+    def __init__(self, world: World):
+        name = StringField("Player Name", validators=[DataRequired()])
+        preset = SelectField("Options Preset", choices=[(preset, preset) for preset in world.web.options_presets])
+
+        super().__init__()
 
 
 def create() -> None:
@@ -25,7 +36,7 @@ def create() -> None:
 def get_world_theme(game_name: str) -> str:
     if game_name in AutoWorldRegister.world_types:
         return AutoWorldRegister.world_types[game_name].web.theme
-    return 'grass'
+    return "grass"
 
 
 def render_options_page(template: str, world_name: str, is_complex: bool = False) -> Union[Response, str]:
@@ -46,12 +57,13 @@ def render_options_page(template: str, world_name: str, is_complex: bool = False
         start_collapsed=start_collapsed,
         issubclass=issubclass,
         Options=Options,
-        theme=get_world_theme(world_name),
+        header_theme=f"header/{get_world_theme(world_name)}Header.html",
     )
 
 
 def generate_game(options: Dict[str, Union[dict, str]]) -> Union[Response, str]:
     from .generate import start_generation
+
     return start_generation(options, get_meta({}))
 
 
@@ -76,11 +88,16 @@ def filter_rst_to_html(text: str) -> str:
         lines = text.splitlines()
         text = lines[0] + "\n" + dedent("\n".join(lines[1:]))
 
-    return publish_parts(text, writer_name='html', settings=None, settings_overrides={
-        'raw_enable': False,
-        'file_insertion_enabled': False,
-        'output_encoding': 'unicode'
-    })['body']
+    return publish_parts(
+        text,
+        writer_name="html",
+        settings=None,
+        settings_overrides={
+            "raw_enable": False,
+            "file_insertion_enabled": False,
+            "output_encoding": "unicode",
+        },
+    )["body"]
 
 
 @app.template_test("ordered")
@@ -103,18 +120,28 @@ def option_presets(game: str) -> Response:
 
             option = world.options_dataclass.type_hints[preset_option_name].from_any(preset_option)
             if isinstance(option, Options.NamedRange) and isinstance(preset_option, str):
-                assert preset_option in option.special_range_names, \
-                    f"Invalid preset value '{preset_option}' for '{preset_option_name}' in '{preset_name}'. " \
+                assert preset_option in option.special_range_names, (
+                    f"Invalid preset value '{preset_option}' for '{preset_option_name}' in '{preset_name}'. "
                     f"Expected {option.special_range_names.keys()} or {option.range_start}-{option.range_end}."
+                )
 
                 presets[preset_name][preset_option_name] = option.value
-            elif isinstance(option, (Options.Range, Options.OptionSet, Options.OptionList, Options.ItemDict)):
+            elif isinstance(
+                option,
+                (
+                    Options.Range,
+                    Options.OptionSet,
+                    Options.OptionList,
+                    Options.ItemDict,
+                ),
+            ):
                 presets[preset_name][preset_option_name] = option.value
             elif isinstance(preset_option, str):
                 # Ensure the option value is valid for Choice and Toggle options
-                assert option.name_lookup[option.value] == preset_option, \
-                    f"Invalid option value '{preset_option}' for '{preset_option_name}' in preset '{preset_name}'. " \
+                assert option.name_lookup[option.value] == preset_option, (
+                    f"Invalid option value '{preset_option}' for '{preset_option_name}' in preset '{preset_name}'. "
                     f"Values must not be resolved to a different option via option.from_text (or an alias)."
+                )
                 # Use the name of the option
                 presets[preset_name][preset_option_name] = option.current_key
             else:
@@ -124,6 +151,7 @@ def option_presets(game: str) -> Response:
     class SetEncoder(json.JSONEncoder):
         def default(self, obj):
             from collections.abc import Set
+
             if isinstance(obj, Set):
                 return list(obj)
             return json.JSONEncoder.default(self, obj)
@@ -140,7 +168,7 @@ def weighted_options_old():
 
 
 @app.route("/games/<string:game>/weighted-options")
-@cache.cached()
+@cache.cached(unless=lambda: app.debug)
 def weighted_options(game: str):
     return render_options_page("weightedOptions/weightedOptions.html", game, is_complex=True)
 
@@ -197,7 +225,8 @@ def generate_weighted_yaml(game: str):
 @app.route("/games/<string:game>/player-options")
 @cache.cached()
 def player_options(game: str):
-    return render_options_page("playerOptions/playerOptions.html", game, is_complex=False)
+    print("DEBUG: " + str(app.debug))
+    return render_options_page("options/player.html", game, is_complex=False)
 
 
 # YAML generator for player-options
@@ -234,7 +263,7 @@ def generate_yaml(game: str):
         # Detect random-* keys and set their options accordingly
         for key, val in options.copy().items():
             if key.startswith("random-"):
-                options[key[len("random-"):]] = "random"
+                options[key[len("random-") :]] = "random"
                 del options[key]
 
         # Error checking
@@ -242,7 +271,7 @@ def generate_yaml(game: str):
             return "Player name is required."
 
         # Remove POST data irrelevant to YAML
-        preset_name = 'default'
+        preset_name = "default"
         if "intent-generate" in options:
             intent_generate = True
             del options["intent-generate"]
@@ -257,7 +286,7 @@ def generate_yaml(game: str):
         del options["name"]
 
         description = f"Generated by https://archipelago.gg/ for {game}"
-        if preset_name != 'default' and preset_name != 'custom':
+        if preset_name != "default" and preset_name != "custom":
             description += f" using {preset_name} preset"
 
         formatted_options = {
