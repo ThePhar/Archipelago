@@ -2,13 +2,14 @@ import collections.abc
 import json
 import os
 from textwrap import dedent
-from typing import Dict, Union
+from typing import Dict, Type, Union
 
 import yaml
 from docutils.core import publish_parts
 from flask import Response, redirect, render_template, request
 from flask_wtf import FlaskForm
 from wtforms import SelectField, StringField
+from wtforms.fields.simple import HiddenField
 from wtforms.validators import DataRequired
 
 import Options
@@ -19,11 +20,8 @@ from .generate import get_meta
 
 
 class PlayerOptionsForm(FlaskForm):
-    def __init__(self, world: World):
-        name = StringField("Player Name", validators=[DataRequired()])
-        preset = SelectField("Options Preset", choices=[(preset, preset) for preset in world.web.options_presets])
-
-        super().__init__()
+    game = HiddenField()
+    name = StringField("Player Name", validators=[DataRequired()])
 
 
 def create() -> None:
@@ -49,16 +47,37 @@ def render_options_page(template: str, world_name: str, is_complex: bool = False
     for group in world.web.option_groups:
         start_collapsed[group.name] = group.start_collapsed
 
+    # TODO: Testing
+    form = PlayerOptionsForm(prefix="meta")
+
     return render_template(
         template,
         world_name=world_name,
-        world=world,
-        option_groups=Options.get_option_groups(world, visibility_level=visibility_flag),
-        start_collapsed=start_collapsed,
-        issubclass=issubclass,
-        Options=Options,
+        # world=world,
+        # option_groups=Options.get_option_groups(world, visibility_level=visibility_flag),
+        # start_collapsed=start_collapsed,
+        # issubclass=issubclass,
+        # Options=Options,
+        form=form,
         header_theme=f"header/{get_world_theme(world_name)}Header.html",
     )
+
+
+# Test
+@app.route("/games/<string:world_name>/test", methods=["POST"])
+def test_action(world_name: str) -> Union[Response, str]:
+    return str(",".join([f"{k}: {v}" for k, v in request.form.items()]))
+
+
+@app.route("/games/<string:world_name>/<string:option_name>/<int:start_index>")
+def test_action_2(world_name: str, option_name: str, start_index: int) -> Union[Response, str]:
+    world = AutoWorldRegister.world_types[world_name]
+    option = world.options_dataclass.type_hints[option_name]
+    keys = list(option.valid_keys)
+    keys.sort()
+
+    return json.dumps(keys[start_index:start_index+100])
+    # return ""
 
 
 def generate_game(options: Dict[str, Union[dict, str]]) -> Union[Response, str]:
