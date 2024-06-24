@@ -1,5 +1,6 @@
 let game = '';
 let presets = {};
+let options = {};
 
 window.addEventListener('load', async () => {
      game = document.getElementById('player-options').getAttribute('data-game')
@@ -9,7 +10,7 @@ window.addEventListener('load', async () => {
 
     // Fetch presets, if available.
     try {
-        await fetchPresets();
+        await fetchOptions();
     } catch (error) {
         console.error('Failed to fetch presets.', error);
     }
@@ -205,24 +206,35 @@ const loadSettings = () => {
  *
  * @returns {Promise<void>}
  */
-const fetchPresets = async () => {
-    const response = await fetch('option-presets');
-    presets = await response.json();
-    const presetSelect = document.getElementById('game-options-preset');
+const fetchOptions = async () => {
+    const response = await fetch('options');
+    const data = await response.json();
+    options = data.options;
+    presets = data.presets;
+    console.log(data);
 
-    const game = document.getElementById('player-options').getAttribute('data-game');
-    const presetToApply = localStorage.getItem(`${game}-preset`);
-    const playerName = localStorage.getItem(`${game}-player`);
-    if (presetToApply) {
-        localStorage.removeItem(`${game}-preset`);
-        presetSelect.value = presetToApply;
-        applyPreset(presetToApply);
+    for (const optionListElement of document.querySelectorAll(".option-list")) {
+        const option = optionListElement.id.substring(0, optionListElement.id.indexOf("-container"));
+        options[option].loaded = 0;
+
+        loadItems(option, optionListElement, 50);
+        createListObserver(optionListElement);
     }
 
-    if (playerName) {
-        document.getElementById('player-name').value = playerName;
-        localStorage.removeItem(`${game}-player`);
-    }
+    // const presetSelect = document.getElementById('game-options-preset');
+    // const game = document.getElementById('player-options').getAttribute('data-game');
+    // const presetToApply = localStorage.getItem(`${game}-preset`);
+    // const playerName = localStorage.getItem(`${game}-player`);
+    // // if (presetToApply) {
+    // //     localStorage.removeItem(`${game}-preset`);
+    // //     presetSelect.value = presetToApply;
+    // //     applyPreset(presetToApply);
+    // // }
+    //
+    // if (playerName) {
+    //     document.getElementById('player-name').value = playerName;
+    //     localStorage.removeItem(`${game}-player`);
+    // }
 };
 
 /**

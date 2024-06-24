@@ -8,6 +8,7 @@
         type="text/css"
         href="{{ url_for("static", filename="styles/options/player.css") }}"
     >
+    <script defer type="application/ecmascript" src="{{ url_for("static", filename="assets/options/shared.js") }}"></script>
     <script defer type="application/ecmascript" src="{{ url_for("static", filename="assets/options/player.js") }}"></script>
 
     <noscript>
@@ -36,7 +37,7 @@
 {% endmacro %}
 
 {% block body %}
-    {% include "header/" + theme + "Header.html" %}
+    {% include header_theme %}
     <div id="player-options" class="markdown" data-game="{{ world_name }}" data-presets="{{ presets }}">
         <noscript>
             <div class="alert">

@@ -1,27 +1,17 @@
 import collections.abc
-import json
 import os
 from textwrap import dedent
-from typing import Dict, Type, Union
+from typing import Dict, Union
 
 import yaml
 from docutils.core import publish_parts
 from flask import Response, redirect, render_template, request
-from flask_wtf import FlaskForm
-from wtforms import SelectField, StringField
-from wtforms.fields.simple import HiddenField
-from wtforms.validators import DataRequired
 
 import Options
 from Utils import get_file_safe_name, local_path
-from worlds.AutoWorld import AutoWorldRegister, World
+from worlds.AutoWorld import AutoWorldRegister
 from . import app, cache
 from .generate import get_meta
-
-
-class PlayerOptionsForm(FlaskForm):
-    game = HiddenField()
-    name = StringField("Player Name", validators=[DataRequired()])
 
 
 def create() -> None:
@@ -47,37 +37,68 @@ def render_options_page(template: str, world_name: str, is_complex: bool = False
     for group in world.web.option_groups:
         start_collapsed[group.name] = group.start_collapsed
 
-    # TODO: Testing
-    form = PlayerOptionsForm(prefix="meta")
-
     return render_template(
         template,
         world_name=world_name,
-        # world=world,
-        # option_groups=Options.get_option_groups(world, visibility_level=visibility_flag),
-        # start_collapsed=start_collapsed,
-        # issubclass=issubclass,
-        # Options=Options,
-        form=form,
+        world=world,
+        option_groups=Options.get_option_groups(world, visibility_level=visibility_flag),
+        start_collapsed=start_collapsed,
+        issubclass=issubclass,
+        Options=Options,
         header_theme=f"header/{get_world_theme(world_name)}Header.html",
     )
 
 
-# Test
-@app.route("/games/<string:world_name>/test", methods=["POST"])
-def test_action(world_name: str) -> Union[Response, str]:
-    return str(",".join([f"{k}: {v}" for k, v in request.form.items()]))
-
-
-@app.route("/games/<string:world_name>/<string:option_name>/<int:start_index>")
-def test_action_2(world_name: str, option_name: str, start_index: int) -> Union[Response, str]:
+@app.route("/games/<string:world_name>/options")
+def test_action_2(world_name: str) -> dict:
     world = AutoWorldRegister.world_types[world_name]
-    option = world.options_dataclass.type_hints[option_name]
-    keys = list(option.valid_keys)
-    keys.sort()
+    options, presets = {}, {}
+    for option_name, option in world.options_dataclass.type_hints.items():
+        if issubclass(option, Options.VerifyKeys):
+            if issubclass(option, Options.LocationSet) and option.verify_location_name:
+                keys = list(sorted(option.valid_keys) if option.valid_keys else sorted(world.location_names))
+            elif issubclass(option, (Options.ItemSet, Options.ItemDict)) and option.verify_item_name:
+                keys = list(sorted(option.valid_keys) if option.valid_keys else sorted(world.item_names))
+            else:
+                keys = list(
+                    option.valid_keys
+                    if isinstance(option.valid_keys, collections.abc.Sequence)
+                    else sorted(option.valid_keys)
+                )
+            options[option_name] = {
+                "default": list(getattr(option, "default", [])),
+                "valid_keys": keys,
+            }
+        elif issubclass(option, Options.NamedRange):
+            options[option_name] = {
+                "default": option.default,
+                "range_start": option.range_start,
+                "range_end": option.range_end,
+                "range_names": option.special_range_names,
+            }
+        elif issubclass(option, Options.Range):
+            options[option_name] = {
+                "default": option.default,
+                "range_start": option.range_start,
+                "range_end": option.range_end,
+            }
+        else:
+            options[option_name] = {
+                "default": option.name_lookup[option.default] if not isinstance(option.default, str) else option.default
+            }
 
-    return json.dumps(keys[start_index:start_index+100])
-    # return ""
+    for preset_name, preset_options in world.web.options_presets.items():
+        presets[preset_name] = {}
+        for option_name, value in preset_options.items():
+            option = world.options_dataclass.type_hints[option_name]
+            if issubclass(option, Options.VerifyKeys):
+                presets[preset_name][option_name] = list(value)
+            elif issubclass(option, Options.Range):
+                presets[preset_name][option_name] = value
+            else:
+                presets[preset_name][option_name] = option.name_lookup[value] if not isinstance(value, str) else value
+
+    return {"options": options, "presets": presets}
 
 
 def generate_game(options: Dict[str, Union[dict, str]]) -> Union[Response, str]:
@@ -119,66 +140,9 @@ def filter_rst_to_html(text: str) -> str:
     )["body"]
 
 
-@app.template_test("ordered")
+@app.template_filter("ordered")
 def test_ordered(obj):
     return isinstance(obj, collections.abc.Sequence)
-
-
-@app.route("/games/<string:game>/option-presets", methods=["GET"])
-@cache.cached()
-def option_presets(game: str) -> Response:
-    world = AutoWorldRegister.world_types[game]
-
-    presets = {}
-    for preset_name, preset in world.web.options_presets.items():
-        presets[preset_name] = {}
-        for preset_option_name, preset_option in preset.items():
-            if preset_option == "random":
-                presets[preset_name][preset_option_name] = preset_option
-                continue
-
-            option = world.options_dataclass.type_hints[preset_option_name].from_any(preset_option)
-            if isinstance(option, Options.NamedRange) and isinstance(preset_option, str):
-                assert preset_option in option.special_range_names, (
-                    f"Invalid preset value '{preset_option}' for '{preset_option_name}' in '{preset_name}'. "
-                    f"Expected {option.special_range_names.keys()} or {option.range_start}-{option.range_end}."
-                )
-
-                presets[preset_name][preset_option_name] = option.value
-            elif isinstance(
-                option,
-                (
-                    Options.Range,
-                    Options.OptionSet,
-                    Options.OptionList,
-                    Options.ItemDict,
-                ),
-            ):
-                presets[preset_name][preset_option_name] = option.value
-            elif isinstance(preset_option, str):
-                # Ensure the option value is valid for Choice and Toggle options
-                assert option.name_lookup[option.value] == preset_option, (
-                    f"Invalid option value '{preset_option}' for '{preset_option_name}' in preset '{preset_name}'. "
-                    f"Values must not be resolved to a different option via option.from_text (or an alias)."
-                )
-                # Use the name of the option
-                presets[preset_name][preset_option_name] = option.current_key
-            else:
-                # Use the name of the option
-                presets[preset_name][preset_option_name] = option.current_key
-
-    class SetEncoder(json.JSONEncoder):
-        def default(self, obj):
-            from collections.abc import Set
-
-            if isinstance(obj, Set):
-                return list(obj)
-            return json.JSONEncoder.default(self, obj)
-
-    json_data = json.dumps(presets, cls=SetEncoder)
-    response = Response(json_data)
-    response.headers["Content-Type"] = "application/json"
-    return response
 
 
 @app.route("/weighted-options")
@@ -244,8 +208,7 @@ def generate_weighted_yaml(game: str):
 @app.route("/games/<string:game>/player-options")
 @cache.cached()
 def player_options(game: str):
-    print("DEBUG: " + str(app.debug))
-    return render_options_page("options/player.html", game, is_complex=False)
+    return render_options_page("playerOptions/playerOptions.html", game, is_complex=False)
 
 
 # YAML generator for player-options
