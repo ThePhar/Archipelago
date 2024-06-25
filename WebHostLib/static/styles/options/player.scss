@@ -15,14 +15,6 @@ html {
     }
 }
 
-.interactive {
-    position: absolute;
-
-    .tooltip-container {
-        z-index: 99999;
-    }
-}
-
 #player-options {
     max-width: 1024px;
     border-radius: 0;
@@ -106,6 +98,11 @@ html {
             min-height: 32px;
             line-height: 28px;
             margin-right: 24px;
+
+            .tooltip-container {
+                position: absolute;
+                z-index: 99999;
+            }
         }
 
         .option-subcontainer {

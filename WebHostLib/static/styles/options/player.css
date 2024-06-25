@@ -13,13 +13,6 @@ html {
   white-space: normal;
 }
 
-.interactive {
-  position: absolute;
-}
-.interactive .tooltip-container {
-  z-index: 99999;
-}
-
 #player-options {
   max-width: 1024px;
   border-radius: 0;
@@ -91,6 +84,10 @@ html {
   min-height: 32px;
   line-height: 28px;
   margin-right: 24px;
+}
+#player-options .option-container label .tooltip-container {
+  position: absolute;
+  z-index: 99999;
 }
 #player-options .option-container .option-subcontainer {
   display: flex;
