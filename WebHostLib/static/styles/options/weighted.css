@@ -1,11 +1,4 @@
 @import "../markdown.css";
-.nobr {
-  white-space: nowrap;
-}
-.nobr .tooltip {
-  white-space: normal;
-}
-
 #player-options .alert, #weighted-options .alert {
   width: calc(100% - 1rem);
   border-radius: 4px;
@@ -34,16 +27,16 @@
   margin-bottom: 1.5rem;
 }
 #player-options #options-header p, #player-options #options-header ul, #weighted-options #options-header p, #weighted-options #options-header ul {
-  font-size: 1.25rem;
-  text-align: justify;
+  font-size: 16px;
 }
 #player-options #options-header h1, #weighted-options #options-header h1 {
   font-size: 3rem;
+  line-height: 2.5rem;
   font-weight: normal;
   width: 100%;
   text-shadow: 1px 1px 4px #000000;
   margin-bottom: 0;
-  padding-bottom: 0;
+  padding-bottom: 0.5rem;
 }
 #player-options #options-header h2, #weighted-options #options-header h2 {
   font-family: LondrinaSolid-Regular, sans-serif;
@@ -74,11 +67,7 @@
   user-select: none;
   margin: 0;
 }
-#player-options .group-container .interactive, #weighted-options .group-container .interactive {
-  cursor: help;
-}
 #player-options .option-container, #weighted-options .option-container {
-  margin-bottom: 0.5rem;
   display: grid;
   grid-template-columns: 4fr minmax(200px, 5fr);
   grid-gap: 0.5rem;
@@ -109,7 +98,7 @@
   text-overflow: ellipsis;
 }
 #player-options .option-container label, #weighted-options .option-container label {
-  font-size: 1rem;
+  font-size: 16px;
   min-height: 24px;
   line-height: 24px;
 }
@@ -185,7 +174,10 @@
 
 @media all and (max-width: 1024px) {
   #player-options #meta-options, #weighted-options #meta-options {
-    column-count: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 1rem;
+    margin-bottom: 1rem;
   }
   #player-options .option-container, #weighted-options .option-container {
     grid-template-columns: 4fr 5fr;
@@ -195,7 +187,7 @@
     padding: 3px 6px;
   }
   #player-options .option-container label, #weighted-options .option-container label {
-    font-size: 1.25rem;
+    font-size: 20px;
   }
   #player-options .option-container .randomize-button, #weighted-options .option-container .randomize-button {
     width: 32px;

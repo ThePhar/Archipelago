@@ -1,4 +1,11 @@
 @import "../markdown.css";
+html {
+  background-image: url("../../static/backgrounds/grass.png");
+  background-repeat: repeat;
+  background-size: 650px 650px;
+  overflow-x: hidden;
+}
+
 .nobr {
   white-space: nowrap;
 }
@@ -6,127 +13,163 @@
   white-space: normal;
 }
 
-#player-options .alert, #weighted-options .alert {
-  width: calc(100% - 1rem);
-  border-radius: 4px;
-  background-color: #f3f309;
-  color: #000000;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
-  text-align: center;
+.interactive {
+  position: absolute;
 }
-#player-options .alert:empty, #weighted-options .alert:empty {
-  display: none;
+.interactive .tooltip-container {
+  z-index: 99999;
 }
-#player-options #options-button-row, #weighted-options #options-button-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: right;
-  margin-top: 1rem;
-  gap: 1rem;
+
+#player-options {
+  max-width: 1024px;
+  border-radius: 0;
+  box-sizing: border-box;
+  word-break: break-word;
+  color: #eeffeb;
+  font-size: 1.25rem;
 }
-#player-options #meta-options, #weighted-options #meta-options {
-  margin-bottom: 1rem;
-  column-count: 2;
-  column-gap: 1rem;
+#player-options * {
+  box-sizing: border-box;
 }
-#player-options #options-header, #weighted-options #options-header {
+#player-options #options-header {
   margin-bottom: 1.5rem;
 }
-#player-options #options-header p, #player-options #options-header ul, #weighted-options #options-header p, #weighted-options #options-header ul {
-  font-size: 1.25rem;
-  text-align: justify;
-}
-#player-options #options-header h1, #weighted-options #options-header h1 {
-  font-size: 3rem;
+#player-options #options-header h1 {
+  font-size: 3.75rem;
+  line-height: 3rem;
   font-weight: normal;
-  width: 100%;
-  text-shadow: 1px 1px 4px #000000;
-  margin-bottom: 0;
-  padding-bottom: 0;
+  text-shadow: 1px 1px 4px black;
+  margin: 0;
 }
-#player-options #options-header h2, #weighted-options #options-header h2 {
+#player-options #options-header h2 {
   font-family: LondrinaSolid-Regular, sans-serif;
   text-transform: uppercase;
-  font-size: 1.4rem;
-  margin-top: -8px;
-  margin-bottom: 0.5rem;
-}
-#player-options .group-container, #weighted-options .group-container {
-  padding: 0;
+  font-size: 2rem;
   margin: 0;
 }
-#player-options .group-container summary, #weighted-options .group-container summary {
+#player-options #options-header p, #player-options #options-header ul {
+  margin: 1rem 0;
+  text-align: justify;
+}
+#player-options #options-meta, #player-options .options {
+  column-count: 1;
+  column-gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+#player-options .group-container {
+  margin: 0;
+  padding: 0;
+}
+#player-options .group-container summary {
+  font-size: 3rem;
   cursor: pointer;
-  font-size: 2rem;
   color: var(--accent-color);
   text-shadow: 1px 1px 2px #000000;
-  padding-bottom: 0.5rem;
+  padding-bottom: 1rem;
 }
-#player-options .group-container h3, #weighted-options .group-container h3 {
-  color: var(--accent-color);
-  font-size: 2rem;
+#player-options .group-container h3 {
   display: inline;
-  font-family: LondrinaSolid-Light, sans-serif;
-  text-transform: none;
-  font-weight: normal;
-  width: 100%;
-  user-select: none;
   margin: 0;
+  width: 100%;
+  font-family: LondrinaSolid-Light, sans-serif;
+  font-weight: normal;
+  font-size: 3rem;
+  text-transform: capitalize;
+  color: var(--accent-color);
 }
-#player-options .group-container .interactive, #weighted-options .group-container .interactive {
-  cursor: help;
-}
-#player-options .option-container, #weighted-options .option-container {
-  margin-bottom: 0.5rem;
+#player-options .option-container {
   display: grid;
-  grid-template-columns: 4fr minmax(200px, 5fr);
+  grid-template-columns: 1fr;
   grid-gap: 0.5rem;
   grid-auto-rows: min-content;
-  align-items: start;
-  min-width: 480px;
   width: 100%;
+  break-inside: avoid;
+  backface-visibility: hidden;
+  margin-bottom: 0.5rem;
 }
-#player-options .option-container input, #player-options .option-container select, #weighted-options .option-container input, #weighted-options .option-container select {
-  box-sizing: border-box;
-  border: 1px solid #000000;
-  background-color: #ffffff;
-  padding: 3px;
-  border-radius: 3px;
-  height: 24px;
+#player-options .option-container label {
+  min-height: 32px;
+  line-height: 28px;
+  margin-right: 24px;
 }
-#player-options .option-container input[disabled], #player-options .option-container select[disabled], #weighted-options .option-container input[disabled], #weighted-options .option-container select[disabled] {
-  background-color: rgb(211, 211, 211);
-}
-#player-options .option-container input:not([type]), #weighted-options .option-container input:not([type]) {
-  min-width: 150px;
-}
-#player-options .option-container input:not([type]):focus, #weighted-options .option-container input:not([type]):focus {
-  border: 1px solid #ffffff;
-}
-#player-options .option-container select, #weighted-options .option-container select {
-  min-width: 150px;
-  text-overflow: ellipsis;
-}
-#player-options .option-container label, #weighted-options .option-container label {
-  font-size: 1rem;
-  min-height: 24px;
-  line-height: 24px;
-}
-#player-options .option-container:nth-child(2), #weighted-options .option-container:nth-child(2) {
-  flex-grow: 1;
-}
-#player-options .range-container, #weighted-options .range-container {
+#player-options .option-container .option-subcontainer {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+#player-options .option-container .option-inputs {
+  display: flex;
   flex-direction: row;
   gap: 0.5rem;
 }
-#player-options .range-container input[type=range], #weighted-options .range-container input[type=range] {
+#player-options .option-container .option-inputs input, #player-options .option-container .option-inputs select {
+  border: 1px solid var(--accent-color-muted);
+  border-radius: 3px;
+  background-color: white;
+  height: 32px;
+  padding: 3px 8px;
+  font-size: 1rem;
   flex-grow: 1;
-  width: 36px;
+  min-width: 0;
+  width: 0;
 }
-#player-options .option-list, #weighted-options .option-list {
+#player-options .option-container .option-inputs select {
+  text-overflow: ellipsis;
+}
+#player-options .option-container .option-inputs input[disabled], #player-options .option-container .option-inputs select[disabled] {
+  background-color: rgb(211, 211, 211);
+}
+#player-options .option-container .option-inputs input[type=number], #player-options .option-container .option-inputs input[type=text] {
+  flex-grow: 2;
+}
+#player-options .option-container .option-inputs input[type=range] {
+  flex-grow: 5;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+#player-options .option-container .option-inputs .randomize-button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 32px;
+  width: 32px;
+  font-size: 14px;
+  box-sizing: border-box;
+  border: 1px solid var(--accent-color-muted);
+  border-radius: 3px;
+  background-color: #d3d3d3;
+  user-select: none;
+}
+#player-options .option-container .option-inputs .randomize-button:hover {
+  background-color: #c0c0c0;
+  cursor: pointer;
+}
+#player-options .option-container .option-inputs .randomize-button label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 22px;
+  width: 100%;
+  height: 100%;
+}
+#player-options .option-container .option-inputs .randomize-button label:hover {
+  cursor: pointer;
+}
+#player-options .option-container .option-inputs .randomize-button input[type=checkbox] {
+  display: none;
+}
+#player-options .option-container .option-inputs .randomize-button:has(input[type=checkbox]:checked) {
+  background-color: #ffef00; /* Same as .interactive in globalStyles.css */
+}
+#player-options .option-container .option-inputs .randomize-button:has(input[type=checkbox]:checked):hover {
+  background-color: #eedd27;
+}
+#player-options .option-container .option-inputs .randomize-button[data-tooltip]::after {
+  left: unset;
+  right: 0;
+}
+#player-options .option-container .option-list {
   display: flex;
   flex-direction: column;
   background-color: rgba(0, 0, 0, 0.25);
@@ -139,196 +182,98 @@
   overflow-y: auto;
   resize: vertical;
 }
-#player-options .option-list .loading, #weighted-options .option-list .loading {
+#player-options .option-container .option-list .loading {
   padding: 1rem;
   font-size: 1rem;
   text-align: center;
   align-self: center;
 }
-#player-options .option-list .option-divider, #weighted-options .option-list .option-divider {
+#player-options .option-container .option-list .option-divider {
   width: 100%;
   height: 2px;
   background-color: var(--accent-color-muted);
   margin-top: 0.125rem;
   margin-bottom: 0.125rem;
 }
-#player-options .option-list .option-entry, #weighted-options .option-list .option-entry {
+#player-options .option-container .option-list .option-entry {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
   user-select: none;
   padding: 0.125rem 0.25rem;
 }
-#player-options .option-list .option-entry:hover, #weighted-options .option-list .option-entry:hover {
+#player-options .option-container .option-list .option-entry:hover {
   background-color: var(--accent-color-muted);
 }
-#player-options .option-list .option-entry input[type=checkbox], #weighted-options .option-list .option-entry input[type=checkbox] {
+#player-options .option-container .option-list .option-entry input[type=checkbox] {
   margin-right: 0.25rem;
   height: 20px;
 }
-#player-options .option-list .option-entry input[type=number], #weighted-options .option-list .option-entry input[type=number] {
+#player-options .option-container .option-list .option-entry input[type=number] {
   max-width: 2rem;
   margin-left: 0.125rem;
   text-align: center;
   /* Hide arrows on input[type=number] fields */
   -moz-appearance: textfield;
 }
-#player-options .option-list .option-entry input[type=number]::-webkit-outer-spin-button, #player-options .option-list .option-entry input[type=number]::-webkit-inner-spin-button, #weighted-options .option-list .option-entry input[type=number]::-webkit-outer-spin-button, #weighted-options .option-list .option-entry input[type=number]::-webkit-inner-spin-button {
+#player-options .option-container .option-list .option-entry input[type=number]::-webkit-outer-spin-button, #player-options .option-container .option-list .option-entry input[type=number]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-#player-options .option-list .option-entry label, #weighted-options .option-list .option-entry label {
+#player-options .option-container .option-list .option-entry label {
   flex-grow: 1;
   margin-left: 0.25rem;
   min-height: 20px;
 }
-
-@media all and (max-width: 1024px) {
-  #player-options #meta-options, #weighted-options #meta-options {
-    column-count: 1;
-  }
-  #player-options .option-container, #weighted-options .option-container {
-    grid-template-columns: 4fr 5fr;
-  }
-  #player-options .option-container input, #player-options .option-container select, #weighted-options .option-container input, #weighted-options .option-container select {
-    height: 32px;
-    padding: 3px 6px;
-  }
-  #player-options .option-container label, #weighted-options .option-container label {
-    font-size: 1.25rem;
-  }
-  #player-options .option-container .randomize-button, #weighted-options .option-container .randomize-button {
-    width: 32px;
-    height: 32px;
-  }
-  #player-options .option-list, #weighted-options .option-list {
-    min-height: 18rem;
-    height: 18rem;
-  }
-  #player-options .option-list .option-entry input[type=checkbox], #weighted-options .option-list .option-entry input[type=checkbox] {
-    height: 30px;
-  }
-  #player-options .option-list .option-entry label, #weighted-options .option-list .option-entry label {
-    flex-grow: 1;
-    margin-left: 0.25rem;
-    min-height: 30px;
-  }
-}
-html {
-  background-image: url("../../static/backgrounds/grass.png");
-  background-repeat: repeat;
-  background-size: 650px 650px;
-  overflow-x: hidden;
-}
-
-#player-options {
-  box-sizing: border-box;
-  max-width: 1024px;
-  margin-left: auto;
-  margin-right: auto;
-  background-color: rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
-  padding: 1rem;
-  color: #eeffeb;
-  word-break: break-word;
-}
-#player-options .game-options {
-  margin-bottom: 1rem;
-  column-count: 2;
-  column-gap: 1rem;
-}
-#player-options .option-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-#player-options .option-subcontainer {
+#player-options #options-button-row {
   display: flex;
   flex-direction: row;
-}
-#player-options .option-subcontainer > *:not(:last-child) {
-  margin-right: 0.5rem;
-}
-#player-options .option-subcontainer select {
-  flex-grow: 1;
-  width: 0;
-}
-#player-options .option-subcontainer select:disabled {
-  background-color: lightgray;
-}
-#player-options .option-subcontainer input[type=number], #player-options .option-subcontainer input[type=text] {
-  flex-grow: 1;
-  width: 80px;
-  min-width: 80px;
-  box-sizing: border-box;
-}
-#player-options .option-subcontainer input[type=range] {
-  flex-grow: 1;
-  box-sizing: border-box;
-  margin-top: 0;
-  margin-bottom: 0;
-}
-#player-options .randomize-button {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 24px;
-  width: 28px;
-  font-size: 14px;
-  box-sizing: border-box;
-  border: 1px solid black;
-  border-radius: 3px;
-  background-color: #d3d3d3;
-  user-select: none;
-}
-#player-options .randomize-button:hover {
-  background-color: #c0c0c0;
-  cursor: pointer;
-}
-#player-options .randomize-button label {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  line-height: 22px;
-  width: 100%;
-  height: 100%;
-}
-#player-options .randomize-button label:hover {
-  cursor: pointer;
-}
-#player-options .randomize-button input[type=checkbox] {
-  display: none;
-}
-#player-options .randomize-button:has(input[type=checkbox]:checked) {
-  background-color: #ffef00; /* Same as .interactive in globalStyles.css */
-}
-#player-options .randomize-button:has(input[type=checkbox]:checked):hover {
-  background-color: #eedd27;
-}
-#player-options .randomize-button[data-tooltip]::after {
-  left: unset;
-  right: 0;
-}
-#player-options label {
-  display: block;
-  margin-right: 4px;
-  cursor: default;
-  word-break: break-word;
+  justify-content: space-between;
+  margin-top: 1rem;
+  gap: 1rem;
 }
 
-@media all and (max-width: 1024px) {
+@media all and (min-width: 600px) {
+  #player-options #options-meta, #player-options .options {
+    grid-gap: 0.5rem 1rem;
+  }
+  #player-options .option-container {
+    grid-template-columns: 4fr minmax(200px, 5fr);
+  }
+}
+@media all and (min-width: 1024px) {
   #player-options {
-    border-radius: 0;
-    padding: 2rem;
+    border-radius: 8px;
+    font-size: 14px;
   }
-  #player-options .game-options {
-    column-count: 1;
+  #player-options #options-header h1 {
+    font-size: 3rem;
+    line-height: 2.25rem;
   }
-  #player-options .game-options input, #player-options .game-options select {
-    height: 32px;
+  #player-options #options-header h2 {
+    font-size: 1.5rem;
   }
-  #player-options .option-list .option-entry label {
-    line-height: 34px;
+  #player-options #options-header p, #player-options #options-header ul {
+    font-size: 16px;
+  }
+  #player-options #options-meta, #player-options .options {
+    column-count: 2;
+  }
+  #player-options .group-container summary, #player-options .group-container h3 {
+    font-size: 2rem;
+  }
+  #player-options .option-container label {
+    min-height: 24px;
+    line-height: 20px;
+  }
+  #player-options .option-container .option-inputs input, #player-options .option-container .option-inputs select {
+    height: 24px;
+    padding: 3px 4px;
+    font-size: 12px;
+  }
+  #player-options .option-container .option-inputs .randomize-button {
+    height: 24px;
+    width: 24px;
   }
 }
 

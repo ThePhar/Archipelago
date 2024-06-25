@@ -37,13 +37,13 @@ window.addEventListener('load', async () => {
             setNamedRange(option, range.value);
             slider.value = range.value;
 
-            range.addEventListener('change', (event) => {
+            range.addEventListener('input', (event) => {
                 range.setCustomValidity('');
                 slider.value = event.target.value;
                 setNamedRange(option, range.value);
                 validateNamedRange(option);
             });
-            slider.addEventListener('change', (event) => {
+            slider.addEventListener('input', (event) => {
                 range.setCustomValidity('');
                 range.value = event.target.value;
                 setNamedRange(option, range.value);
@@ -59,11 +59,11 @@ window.addEventListener('load', async () => {
         } else {
             slider.value = range.value;
 
-            range.addEventListener('change', (event) => {
+            range.addEventListener('input', (event) => {
                 range.setCustomValidity('');
                 slider.value = event.target.value;
             });
-            slider.addEventListener('change', (event) => {
+            slider.addEventListener('input', (event) => {
                 range.setCustomValidity('');
                 range.value = event.target.value;
             });
@@ -213,12 +213,12 @@ const fetchOptions = async () => {
     presets = data.presets;
     console.log(data);
 
-    for (const optionListElement of document.querySelectorAll(".option-list")) {
-        const option = optionListElement.id.substring(0, optionListElement.id.indexOf("-container"));
+    for (const element of document.querySelectorAll("[data-keys-type=list], [data-keys-type=dict]")) {
+        const option = element.id.substring(0, element.id.indexOf("-container"));
+        const type = element.getAttribute("data-keys-type");
         options[option].loaded = 0;
 
-        loadItems(option, optionListElement, 50);
-        createListObserver(optionListElement);
+        createListObserver(element, type);
     }
 
     // const presetSelect = document.getElementById('game-options-preset');

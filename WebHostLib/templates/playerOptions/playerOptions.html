@@ -38,15 +38,15 @@
 
 {% block body %}
     {% include header_theme %}
-    <div id="player-options" class="markdown" data-game="{{ world_name }}" data-presets="{{ presets }}">
-        <noscript>
-            <div class="alert">
-                This page has reduced functionality without JavaScript.
-            </div>
-        </noscript>
+    <div id="player-options" class="markdown" data-game="{{ world_name }}">
+{#        <noscript>#}
+{#            <div class="alert">#}
+{#                This page has reduced functionality without JavaScript.#}
+{#            </div>#}
+{#        </noscript>#}
 
         {# Used for JS alerts and Flask flash messages. #}
-        <div id="user-message" class="alert">{{ message }}</div>
+{#        <div id="user-message" class="alert">{{ message }}</div>#}
 
         <div id="options-header">
             <h1>{{ world_name }}</h1>
@@ -70,24 +70,21 @@
         </div>
 
         <form id="options-form" method="post" enctype="application/x-www-form-urlencoded" action="generate-yaml">
-            <div id="meta-options">
+            <div id="options-meta">
                 <div class="option-container">
                     <label for="player-name">
-                        Player Name:
-                        <span
-                            class="interactive tooltip-container"
-                        >
-                            (?)
-                            <div class="tooltip">
-                                 {{ PlayerNameHelp() | safe }}
-                            </div>
+                        Player Name:&nbsp;
+                        <span class="interactive tooltip-container">
+                            (?)<span class="tooltip">{{ PlayerNameHelp() | safe }}</span>
                         </span>
                     </label>
-                    <input id="player-name" placeholder="Player" name="name" required>
+                    <div class="option-inputs">
+                        <input id="player-name" placeholder="Player" name="name" required>
+                    </div>
                 </div>
                 <div class="js-required option-container">
                     <label for="game-options-preset">
-                        Options Preset:
+                        Options Preset:&nbsp;
                         <span
                             class="interactive"
                             data-tooltip="Select from a list of developer-curated presets (if any) or reset all options to their defaults."
@@ -95,13 +92,15 @@
                             (?)
                         </span>
                     </label>
-                    <select id="game-options-preset" name="game-options-preset">
-                        <option value="default">Default</option>
-                        {% for preset_name in world.web.options_presets %}
-                            <option value="{{ preset_name }}">{{ preset_name }}</option>
-                        {% endfor %}
-                        <option value="custom" hidden>Custom</option>
-                    </select>
+                    <div class="option-inputs">
+                        <select id="game-options-preset" name="game-options-preset">
+                            <option value="default">Default</option>
+                            {% for preset_name in world.web.options_presets %}
+                                <option value="{{ preset_name }}">{{ preset_name }}</option>
+                            {% endfor %}
+                            <option value="custom" hidden>Custom</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -109,7 +108,7 @@
                 {% for group_name, group_options in option_groups.items() %}
                     <details class="group-container" {% if not start_collapsed[group_name] %}open{% endif %}>
                         <summary><h3>{{ group_name }}</h3></summary>
-                        <div class="game-options">
+                        <div class="options">
                             {% for option_name, option in group_options.items() %}
                                 {% if issubclass(option, Options.Toggle) %}
                                     {{ inputs.Toggle(option_name, option) }}
@@ -143,7 +142,6 @@
 
                                 {% elif issubclass(option, Options.OptionSet) and option.valid_keys %}
                                     {{ inputs.OptionSet(option_name, option) }}
-
                                 {% endif %}
                             {% endfor %}
                         </div>

@@ -1,7 +1,7 @@
 {% macro Toggle(option_name, option) %}
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-subcontainer">
+        <div class="option-inputs">
             <select
                 id="{{ option_name }}"
                 name="{{ option_name }}"
@@ -22,7 +22,7 @@
 {% macro Choice(option_name, option) %}
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-subcontainer">
+        <div class="option-inputs">
             <select
                 id="{{ option_name }}"
                 name="{{ option_name }}"
@@ -45,7 +45,7 @@
 {% macro Range(option_name, option) %}
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-subcontainer">
+        <div class="option-inputs">
             <input
                 type="range"
                 class="js-required"
@@ -73,8 +73,8 @@
 {% macro NamedRange(option_name, option) %}
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-group">
-            <div class="option-subcontainer">
+        <div class="option-subcontainer">
+            <div class="option-inputs">
                 <select class="js-required" id="{{ option_name }}-select">
                     {% set default_in_special_names = False %}
                     {% for key, value in option.special_range_names.items() %}
@@ -89,7 +89,7 @@
                     <option value="custom" hidden {{ "selected" if not default_in_special_names }}>Custom</option>
                 </select>
             </div>
-            <div class="option-subcontainer">
+            <div class="option-inputs">
                 <input
                     type="range"
                     id="{{ option_name }}-range"
@@ -116,7 +116,7 @@
 {% macro FreeText(option_name, option) %}
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-subcontainer">
+        <div class="option-inputs">
             <input
                 type="text"
                 id="{{ option_name }}"
@@ -130,8 +130,8 @@
 {% macro TextChoice(option_name, option) %}
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-group">
-            <div class="option-subcontainer">
+        <div class="option-subcontainer">
+            <div class="option-inputs">
                 <select
                     id="{{ option_name }}"
                     name="{{ option_name }}"
@@ -151,163 +151,58 @@
             </select>
             {{ RandomizeButton(option_name, option) }}
             </div>
-            <input
-                type="text"
-                id="{{ option_name }}-custom"
-                name="{{ option_name }}-custom"
-                placeholder="Custom value..."
-                data-option-name="{{ option_name }}"
-                data-option-type="text-choice"
-            >
+            <div class="option-inputs">
+                <input
+                    type="text"
+                    id="{{ option_name }}-custom"
+                    name="{{ option_name }}-custom"
+                    placeholder="Custom value..."
+                    data-option-name="{{ option_name }}"
+                    data-option-type="text-choice"
+                >
+            </div>
         </div>
     </div>
 {% endmacro %}
 
 {% macro ItemDict(option_name, option) %}
-    <div class="option-container js-required">
+    <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-list2"> {# TODO: needs to be handled differently #}
-            {# Elements are created via JavaScript to reduce load on browser for large lists. #}
-{#            {% for item_name in (option.valid_keys | sort if (option.valid_keys | length > 0) else world.item_names | sort) %}#}
-{#                <div class="option-entry">#}
-{#                    <label for="{{ option_name }}-{{ item_name }}-qty">{{ item_name }}</label>#}
-{#                    <input#}
-{#                        type="number"#}
-{#                        id="{{ option_name }}-{{ item_name }}-qty"#}
-{#                        class="option"#}
-{#                        name="{{ option_name }}||{{ item_name }}||qty"#}
-{#                        value="{{ option.default[item_name] | default("0") }}"#}
-{#                        data-option-name="{{ option_name }}"#}
-{#                        data-item-name="{{ item_name }}"#}
-{#                    >#}
-{#                </div>#}
-{#            {% endfor %}#}
-        </div>
+        <div class="option-list" id="{{ option_name }}-container" data-keys-type="dict"></div>
     </div>
 {% endmacro %}
 
 {% macro OptionList(option_name, option) %}
-    <div class="option-container js-required">
+    <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-list" id="{{ option_name }}-container">
-            {# Elements are created via JavaScript to reduce load on browser for large lists. #}
-{#            {% for key in (option.valid_keys if option.valid_keys is ordered else option.valid_keys | sort) %}#}
-{#                <div class="option-entry">#}
-{#                    <input#}
-{#                        type="checkbox"#}
-{#                        id="{{ option_name }}-{{ key }}"#}
-{#                        name="{{ option_name }}"#}
-{#                        value="{{ key }}"#}
-{#                        {{ "checked" if key in option.default }}#}
-{#                    >#}
-{#                    <label for="{{ option_name }}-{{ key }}">{{ key }}</label>#}
-{#                </div>#}
-{#            {% endfor %}#}
-        </div>
+        <div class="option-list" id="{{ option_name }}-container" data-keys-type="list"></div>
     </div>
 {% endmacro %}
 
 {% macro LocationSet(option_name, option) %}
-    <div class="option-container js-required">
+    <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-list" id="{{ option_name }}-container">
-            {# Elements are created via JavaScript to reduce load on browser for large lists. #}
-{#            {% for group_name in world.location_name_groups.keys() | sort %}#}
-{#                {% if group_name != "Everywhere" %}#}
-{#                    <div class="option-entry">#}
-{#                        <input#}
-{#                            type="checkbox"#}
-{#                            id="{{ option_name }}-{{ group_name }}"#}
-{#                            name="{{ option_name }}"#}
-{#                            value="{{ group_name }}"#}
-{#                            {{ "checked" if group_name in option.default }}#}
-{#                        >#}
-{#                        <label for="{{ option_name }}-{{ group_name }}">{{ group_name }}</label>#}
-{#                    </div>#}
-{#                {% endif %}#}
-{#            {% endfor %}#}
-{#            {% if world.location_name_groups.keys() | length > 1 %}#}
-{#                <div class="option-divider">&nbsp;</div>#}
-{#            {% endif %}#}
-{#            {% for location_name in (option.valid_keys | sort if (option.valid_keys | length > 0) else world.location_names | sort) %}#}
-{#                <div class="option-entry">#}
-{#                    <input#}
-{#                        type="checkbox"#}
-{#                        id="{{ option_name }}-{{ location_name }}"#}
-{#                        name="{{ option_name }}"#}
-{#                        value="{{ location_name }}"#}
-{#                        {{ "checked" if location_name in option.default }}#}
-{#                    >#}
-{#                    <label for="{{ option_name }}-{{ location_name }}">{{ location_name }}</label>#}
-{#                </div>#}
-{#            {% endfor %}#}
-        </div>
+        <div class="option-list" id="{{ option_name }}-container" data-keys-type="list"></div>
     </div>
 {% endmacro %}
 
 {% macro ItemSet(option_name, option) %}
-    <div class="option-container js-required">
+    <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-list" id="{{ option_name }}-container">
-            {# Elements are created via JavaScript to reduce load on browser for large lists. #}
-            <div id="{{ option_name }}-eol"></div>
-{#            {% for group_name in world.item_name_groups.keys() | sort %}#}
-{#                {% if group_name != "Everything" %}#}
-{#                    <div class="option-entry">#}
-{#                        <input#}
-{#                            type="checkbox"#}
-{#                            id="{{ option_name }}-{{ group_name }}"#}
-{#                            name="{{ option_name }}"#}
-{#                            value="{{ group_name }}"#}
-{#                            {{ "checked" if group_name in option.default }}#}
-{#                        >#}
-{#                        <label for="{{ option_name }}-{{ group_name }}">{{ group_name }}</label>#}
-{#                    </div>#}
-{#                {% endif %}#}
-{#            {% endfor %}#}
-{#            {% if world.item_name_groups.keys() | length > 1 %}#}
-{#                <div class="option-divider">&nbsp;</div>#}
-{#            {% endif %}#}
-{#            {% for item_name in (option.valid_keys | sort if (option.valid_keys | length > 0) else world.item_names | sort) %}#}
-{#                <div class="option-entry">#}
-{#                    <input#}
-{#                        type="checkbox"#}
-{#                        id="{{ option_name }}-{{ item_name }}"#}
-{#                        name="{{ option_name }}"#}
-{#                        value="{{ item_name }}"#}
-{#                        {{ "checked" if item_name in option.default }}#}
-{#                    >#}
-{#                    <label for="{{ option_name }}-{{ item_name }}">{{ item_name }}</label>#}
-{#                </div>#}
-{#            {% endfor %}#}
-        </div>
+        <div class="option-list" id="{{ option_name }}-container" data-keys-type="list"></div>
     </div>
 {% endmacro %}
 
 {% macro OptionSet(option_name, option) %}
-    <div class="option-container js-required">
+    <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-list" id="{{ option_name }}-container">
-            {# Elements are created via JavaScript to reduce load on browser for large lists. #}
-{#            {% for key in (option.valid_keys if option.valid_keys is ordered else option.valid_keys | sort) %}#}
-{#                <div class="option-entry">#}
-{#                    <input#}
-{#                        type="checkbox"#}
-{#                        id="{{ option_name }}-{{ key }}"#}
-{#                        name="{{ option_name }}"#}
-{#                        value="{{ key }}"#}
-{#                        {{ "checked" if key in option.default }}#}
-{#                    >#}
-{#                    <label for="{{ option_name }}-{{ key }}">{{ key }}</label>#}
-{#                </div>#}
-{#            {% endfor %}#}
-        </div>
+        <div class="option-list" id="{{ option_name }}-container" data-keys-type="list"></div>
     </div>
 {% endmacro %}
 
 {% macro OptionTitle(option_name, option) %}
     <label for="{{ option_name }}">
-        {{ option.display_name | default(option_name) }}<span class="nobr">: <span
+        {{ option.display_name | default(option_name) }}<span class="nobr">:&nbsp;<span
             class="interactive tooltip-container"
             {% if not (option.rich_text_doc | default(world.web.rich_text_options_doc, true)) %}
               data-tooltip="{{ (option.__doc__ | default("Please document me!")) | replace("\n    ", "\n") | escape | trim }}"
