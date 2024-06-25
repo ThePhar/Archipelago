@@ -52,11 +52,9 @@ html {
     }
 
     #options-meta, .options {
-        //display: grid;
-        //grid-template-columns: 1fr;
-        //grid-gap: 1.5rem;
-        column-count: 1;
-        column-gap: 1.5rem;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-gap: 1.5rem;
         margin-bottom: 1.5rem;
     }
 
@@ -98,11 +96,6 @@ html {
             min-height: 32px;
             line-height: 28px;
             margin-right: 24px;
-
-            .tooltip-container {
-                position: absolute;
-                z-index: 99999;
-            }
         }
 
         .option-subcontainer {
@@ -308,8 +301,8 @@ html {
         }
 
         #options-meta, .options {
-            //grid-template-columns: 1fr 1fr;
-            //grid-gap: 0.5rem 1.5rem;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 0.5rem 1.5rem;
             column-count: 2;
         }
 
