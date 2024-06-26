@@ -180,11 +180,11 @@
                 (option.valid_keys | length > 0) and is_large_list(option.valid_keys, 100) or
                 (option.valid_keys | length == 0) and is_large_list(world.item_names, 100))
             %}
-                <div class="option-list" id="{{ option_name }}-container" data-keys-type="list">
+                <div class="option-list" id="{{ option_name }}-container" data-keys-type="dict">
                     {{ NoJSFullLoadDisclaimer() }}
                 </div>
             {% else %}
-                <div class="option-list" id="{{ option_name }}-container" data-keys-type="list" data-preloaded="true">
+                <div class="option-list" id="{{ option_name }}-container" data-keys-type="dict" data-preloaded="true">
                     {% for item_name in (option.valid_keys | sort if (option.valid_keys | length > 0) else world.item_names | sort) %}
                         <div class="option-entry">
                             <label for="{{ option_name }}-{{ item_name }}-qty">{{ item_name }}</label>
