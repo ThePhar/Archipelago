@@ -213,12 +213,36 @@ const fetchOptions = async () => {
     presets = data.presets;
     console.log(data);
 
+    // Setup lists and dicts.
     for (const element of document.querySelectorAll("[data-keys-type=list], [data-keys-type=dict]")) {
         const option = element.id.substring(0, element.id.indexOf("-container"));
         const type = element.getAttribute("data-keys-type");
-        options[option].loaded = 0;
+        /** @type {HTMLInputElement} */
+        const search = document.getElementById(`${option}-search`);
+        options[option].loaded = {
+            observer: null,
+            max: 0,
+            keys: options[option]["valid_keys"],
+        };
 
-        createListObserver(element, type);
+        search.addEventListener("input", (event) => {
+            let keys = [];
+            if (event.target.value.trim() === "") {
+                keys = options[option]["valid_keys"];
+            } else {
+                for (const value of options[option]["valid_keys"]) {
+                    if (value.toLowerCase().includes(event.target.value.toLowerCase())) {
+                        keys.push(value);
+                    }
+                }
+            }
+
+            options[option].loaded.max = 0;
+            options[option].loaded.keys = keys;
+            updateObserver(option, element, type);
+        });
+
+        updateObserver(option, element, type);
     }
 
     // const presetSelect = document.getElementById('game-options-preset');

@@ -159,7 +159,8 @@ def weighted_options_old():
 @app.route("/games/<string:game>/weighted-options")
 @cache.cached(unless=lambda: app.debug)
 def weighted_options(game: str):
-    return render_options_page("weightedOptions/weightedOptions.html", game, is_complex=True)
+    return "under rework -Phar"
+    # return render_options_page("weightedOptions/weightedOptions.html", game, is_complex=True)
 
 
 @app.route("/games/<string:game>/generate-weighted-yaml", methods=["POST"])
@@ -225,6 +226,8 @@ def player_options(game: str):
 # YAML generator for player-options
 @app.route("/games/<string:game>/generate-yaml", methods=["POST"])
 def generate_yaml(game: str):
+    return "under rework -Phar"
+
     if request.method == "POST":
         options = {}
         intent_generate = False
