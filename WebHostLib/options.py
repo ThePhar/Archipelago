@@ -214,7 +214,7 @@ def generate_weighted_yaml(game: str):
 
 # Player options pages
 @app.route("/games/<string:game>/player-options")
-@cache.cached()
+@cache.cached(query_string=True)
 def player_options(game: str):
     return render_options_page(
         "playerOptions/playerOptions.html",
