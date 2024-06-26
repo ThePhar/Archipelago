@@ -5,6 +5,7 @@ html {
     background-repeat: repeat;
     background-size: 650px 650px;
     overflow-x: hidden;
+    font-size: 14px;
 }
 
 .nobr {
@@ -21,7 +22,7 @@ html {
     box-sizing: border-box;
     word-break: break-word;
     color: #eeffeb;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
 
     * {
         box-sizing: border-box;
@@ -46,7 +47,7 @@ html {
         }
 
         p, ul {
-            margin: 1rem 0;
+            margin: 16px 0;
             text-align: justify;
         }
     }
@@ -90,7 +91,6 @@ html {
         width: 100%;
         break-inside: avoid;
         backface-visibility: hidden;
-        margin-bottom: 0.5rem;
 
         label {
             min-height: 32px;
@@ -146,7 +146,7 @@ html {
                 justify-content: center;
                 height: 32px;
                 width: 32px;
-                font-size: 14px;
+                font-size: 1rem;
                 box-sizing: border-box;
                 border: 1px solid var(--accent-color-muted);
                 border-radius: 3px;
@@ -196,6 +196,7 @@ html {
             background-color: rgba(0, 0, 0, 0.25);
             border: 1px solid var(--accent-color-muted);
             border-radius: 3px;
+            padding: 0.25rem 0;
             color: #ffffff;
             min-height: 10rem;
             height: 10rem;
@@ -230,14 +231,15 @@ html {
                 }
 
                 input[type=checkbox] {
-                    margin-right: 0.25rem;
+                    margin: 2px 0.125rem;
                     height: 20px;
                 }
 
                 input[type=number] {
                     max-width: 2rem;
-                    margin-left: 0.125rem;
+                    margin: 2px 0.125rem;
                     text-align: center;
+                    height: 20px;
 
                     /* Hide arrows on input[type=number] fields */
                     -moz-appearance: textfield;
@@ -251,9 +253,15 @@ html {
                 label {
                     flex-grow: 1;
                     margin-left: 0.25rem;
-                    min-height: 20px;
+                    min-height: 24px;
                 }
             }
+        }
+
+        .js-disclaimer {
+            text-align: center;
+            margin-top: 1rem;
+            padding: 0 1rem;
         }
     }
 
@@ -283,7 +291,7 @@ html {
 @media all and (min-width: 1024px) {
     #player-options {
         border-radius: 8px;
-        font-size: 14px;
+        font-size: 1rem;
 
         #options-header {
             h1 {
@@ -296,7 +304,7 @@ html {
             }
 
             p, ul {
-                font-size: 16px;
+                font-size: 1.125rem;
             }
         }
 
@@ -333,140 +341,3 @@ html {
         }
     }
 }
-
-//#player-options {
-//    box-sizing: border-box;
-//    max-width: 1024px;
-//    margin-left: auto;
-//    margin-right: auto;
-//    background-color: rgba(0, 0, 0, 0.15);
-//    border-radius: 8px;
-//    padding: 1rem;
-//    color: #eeffeb;
-//    word-break: break-word;
-//
-//    .game-options {
-//        display: grid;
-//        grid-template-columns: 1fr 1fr;
-//        gap: 0.5rem 1rem;
-//        margin-bottom: 1rem;
-//    }
-//
-//    .option-group {
-//        display: flex;
-//        flex-direction: column;
-//        gap: 0.5rem;
-//    }
-//
-//    .option-subcontainer {
-//        display: flex;
-//        flex-direction: row;
-//        break-inside: avoid;
-//
-//        & > *:not(:last-child) {
-//            margin-right: 0.5rem;
-//        }
-//
-//        select {
-//            flex-grow: 1;
-//            width: 0;
-//
-//            &:disabled {
-//                background-color: lightgray;
-//            }
-//        }
-//
-//        input[type=number], input[type=text] {
-//            flex-grow: 2;
-//            width: 0;
-//            min-width: 0;
-//            box-sizing: border-box;
-//        }
-//
-//        input[type=range] {
-//            flex-grow: 5;
-//            width: 0;
-//            box-sizing: border-box;
-//            margin-top: 0;
-//            margin-bottom: 0;
-//            padding-left: 0;
-//            padding-right: 0;
-//            border: 0;
-//        }
-//    }
-//
-//    .randomize-button {
-//        display: flex;
-//        flex-direction: column;
-//        justify-content: center;
-//        height: 24px;
-//        width: 28px;
-//        font-size: 14px;
-//        box-sizing: border-box;
-//        border: 1px solid black;
-//        border-radius: 3px;
-//        background-color: #d3d3d3;
-//        user-select: none;
-//
-//        &:hover {
-//            background-color: #c0c0c0;
-//            cursor: pointer;
-//        }
-//
-//        label {
-//            display: flex;
-//            justify-content: center;
-//            align-items: center;
-//            line-height: 22px;
-//            width: 100%;
-//            height: 100%;
-//
-//            &:hover {
-//                cursor: pointer;
-//            }
-//        }
-//
-//        input[type=checkbox] {
-//            display: none;
-//        }
-//
-//        &:has(input[type=checkbox]:checked) {
-//            background-color: #ffef00; /* Same as .interactive in globalStyles.css */
-//
-//            &:hover {
-//                background-color: #eedd27;
-//            }
-//        }
-//
-//        &[data-tooltip]::after {
-//            left: unset;
-//            right: 0;
-//        }
-//    }
-//
-//    label {
-//        display: block;
-//        margin-right: 4px;
-//        cursor: default;
-//        word-break: break-word;
-//    }
-//}
-
-//@media all and (max-width: 1024px) {
-//    #player-options {
-//        border-radius: 0;
-//        padding: 2rem;
-//
-//        .game-options {
-//            column-count: 1;
-//
-//            input, select {
-//                height: 32px;
-//            }
-//        }
-//
-//        .option-list .option-entry label {
-//            line-height: 34px;
-//        }
-//    }
-//}

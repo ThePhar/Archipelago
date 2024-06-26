@@ -27,7 +27,11 @@ def get_world_theme(game_name: str) -> str:
     return "grass"
 
 
-def render_options_page(template: str, world_name: str, is_complex: bool = False) -> Union[Response, str]:
+def is_large_list(sequence: list, threshold: int) -> bool:
+    return len(sequence) >= threshold
+
+
+def render_options_page(template: str, world_name: str, is_complex: bool = False, preload: bool = False) -> Union[Response, str]:
     world = AutoWorldRegister.world_types[world_name]
     if world.hidden or world.web.options_page is False:
         return redirect("games")
@@ -45,6 +49,8 @@ def render_options_page(template: str, world_name: str, is_complex: bool = False
         start_collapsed=start_collapsed,
         issubclass=issubclass,
         Options=Options,
+        is_large_list=is_large_list,
+        preload=preload,
         header_theme=f"header/{get_world_theme(world_name)}Header.html",
     )
 
@@ -140,7 +146,7 @@ def filter_rst_to_html(text: str) -> str:
     )["body"]
 
 
-@app.template_filter("ordered")
+@app.template_test("ordered")
 def test_ordered(obj):
     return isinstance(obj, collections.abc.Sequence)
 
@@ -208,7 +214,12 @@ def generate_weighted_yaml(game: str):
 @app.route("/games/<string:game>/player-options")
 @cache.cached()
 def player_options(game: str):
-    return render_options_page("playerOptions/playerOptions.html", game, is_complex=False)
+    return render_options_page(
+        "playerOptions/playerOptions.html",
+        game,
+        is_complex=False,
+        preload=bool(request.args.get("preload-all", False)),
+    )
 
 
 # YAML generator for player-options

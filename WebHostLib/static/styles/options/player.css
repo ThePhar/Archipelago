@@ -4,6 +4,7 @@ html {
   background-repeat: repeat;
   background-size: 650px 650px;
   overflow-x: hidden;
+  font-size: 14px;
 }
 
 .nobr {
@@ -19,7 +20,7 @@ html {
   box-sizing: border-box;
   word-break: break-word;
   color: #eeffeb;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
 }
 #player-options * {
   box-sizing: border-box;
@@ -41,7 +42,7 @@ html {
   margin: 0;
 }
 #player-options #options-header p, #player-options #options-header ul {
-  margin: 1rem 0;
+  margin: 16px 0;
   text-align: justify;
 }
 #player-options #options-meta, #player-options .options {
@@ -79,7 +80,6 @@ html {
   width: 100%;
   break-inside: avoid;
   backface-visibility: hidden;
-  margin-bottom: 0.5rem;
 }
 #player-options .option-container label {
   min-height: 32px;
@@ -128,7 +128,7 @@ html {
   justify-content: center;
   height: 32px;
   width: 32px;
-  font-size: 14px;
+  font-size: 1rem;
   box-sizing: border-box;
   border: 1px solid var(--accent-color-muted);
   border-radius: 3px;
@@ -169,6 +169,7 @@ html {
   background-color: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--accent-color-muted);
   border-radius: 3px;
+  padding: 0.25rem 0;
   color: #ffffff;
   min-height: 10rem;
   height: 10rem;
@@ -200,13 +201,14 @@ html {
   background-color: var(--accent-color-muted);
 }
 #player-options .option-container .option-list .option-entry input[type=checkbox] {
-  margin-right: 0.25rem;
+  margin: 2px 0.125rem;
   height: 20px;
 }
 #player-options .option-container .option-list .option-entry input[type=number] {
   max-width: 2rem;
-  margin-left: 0.125rem;
+  margin: 2px 0.125rem;
   text-align: center;
+  height: 20px;
   /* Hide arrows on input[type=number] fields */
   -moz-appearance: textfield;
 }
@@ -217,7 +219,12 @@ html {
 #player-options .option-container .option-list .option-entry label {
   flex-grow: 1;
   margin-left: 0.25rem;
-  min-height: 20px;
+  min-height: 24px;
+}
+#player-options .option-container .js-disclaimer {
+  text-align: center;
+  margin-top: 1rem;
+  padding: 0 1rem;
 }
 #player-options #options-button-row {
   display: flex;
@@ -238,7 +245,7 @@ html {
 @media all and (min-width: 1024px) {
   #player-options {
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 1rem;
   }
   #player-options #options-header h1 {
     font-size: 3rem;
@@ -248,7 +255,7 @@ html {
     font-size: 1.5rem;
   }
   #player-options #options-header p, #player-options #options-header ul {
-    font-size: 16px;
+    font-size: 1.125rem;
   }
   #player-options #options-meta, #player-options .options {
     grid-template-columns: 1fr 1fr;

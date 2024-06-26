@@ -74,8 +74,8 @@
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
         <div class="option-subcontainer">
-            <div class="option-inputs">
-                <select class="js-required" id="{{ option_name }}-select">
+            <div class="option-inputs js-required">
+                <select id="{{ option_name }}-select">
                     {% set default_in_special_names = False %}
                     {% for key, value in option.special_range_names.items() %}
                         {% if option.default == value %}
@@ -168,36 +168,156 @@
 {% macro ItemDict(option_name, option) %}
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-list" id="{{ option_name }}-container" data-keys-type="dict"></div>
+        <div class="option-subcontainer">
+            <div class="option-inputs js-required">
+                <input
+                    type="text"
+                    id="{{ option_name }}-search"
+                    placeholder="Search {{ option.display_name | default(option_name) }}..."
+                >
+            </div>
+            {% if not preload and (
+                (option.valid_keys | length > 0) and is_large_list(option.valid_keys, 100) or
+                (option.valid_keys | length == 0) and is_large_list(world.item_names, 100))
+            %}
+                <div class="option-list" id="{{ option_name }}-container" data-keys-type="list">
+                    {{ NoJSFullLoadDisclaimer() }}
+                </div>
+            {% else %}
+                <div class="option-list" id="{{ option_name }}-container" data-keys-type="list" data-preloaded="true">
+                    {% for item_name in (option.valid_keys | sort if (option.valid_keys | length > 0) else world.item_names | sort) %}
+                        <div class="option-entry">
+                            <label for="{{ option_name }}-{{ item_name }}-qty">{{ item_name }}</label>
+                            <input
+                                type="number"
+                                id="{{ option_name }}-{{ item_name }}-qty"
+                                name="{{ option_name }}||{{ item_name }}||qty"
+                                placeholder="{{ option.default[item_name]|default("0") }}"
+                                data-option-name="{{ option_name }}"
+                                data-item-name="{{ item_name }}"
+                            >
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
     </div>
 {% endmacro %}
 
 {% macro OptionList(option_name, option) %}
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-list" id="{{ option_name }}-container" data-keys-type="list"></div>
+        <div class="option-subcontainer">
+            <div class="option-inputs js-required">
+                <input
+                    type="text"
+                    id="{{ option_name }}-search"
+                    placeholder="Search {{ option.display_name | default(option_name) }}..."
+                >
+            </div>
+            {% if not preload and is_large_list(option.valid_keys, 100) %}
+                <div class="option-list" id="{{ option_name }}-container" data-keys-type="list">
+                    {{ NoJSFullLoadDisclaimer() }}
+                </div>
+            {% else %}
+                <div class="option-list" id="{{ option_name }}-container" data-keys-type="list" data-preloaded="true">
+                    {% for key in (option.valid_keys if option.valid_keys is ordered else option.valid_keys | sort) %}
+                        <div class="option-entry">
+                            <input
+                                type="checkbox"
+                                id="{{ option_name }}-{{ key }}"
+                                name="{{ option_name }}"
+                                value="{{ key }}"
+                                {{ "checked" if key in option.default }}
+                            >
+                            <label for="{{ option_name }}-{{ key }}">{{ key }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
     </div>
 {% endmacro %}
 
 {% macro LocationSet(option_name, option) %}
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-list" id="{{ option_name }}-container" data-keys-type="list"></div>
+        <div class="option-subcontainer">
+            <div class="option-inputs js-required">
+                <input
+                    type="text"
+                    id="{{ option_name }}-search"
+                    placeholder="Search {{ option.display_name | default(option_name) }}..."
+                >
+            </div>
+            {% if not preload and (
+                (option.valid_keys | length > 0) and is_large_list(option.valid_keys, 100) or
+                (option.valid_keys | length == 0) and is_large_list(world.location_names, 100))
+            %}
+                <div class="option-list" id="{{ option_name }}-container" data-keys-type="list">
+                    {{ NoJSFullLoadDisclaimer() }}
+                </div>
+            {% else %}
+                <div class="option-list" id="{{ option_name }}-container" data-keys-type="list" data-preloaded="true">
+                    {% for location_name in (option.valid_keys | sort if (option.valid_keys | length > 0) else world.location_names | sort) %}
+                        <div class="option-entry">
+                            <input
+                                type="checkbox"
+                                id="{{ option_name }}-{{ location_name }}"
+                                name="{{ option_name }}"
+                                value="{{ location_name }}"
+                                {{ "checked" if location_name in option.default }}
+                            >
+                            <label for="{{ option_name }}-{{ location_name }}">{{ location_name }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
     </div>
 {% endmacro %}
 
 {% macro ItemSet(option_name, option) %}
     <div class="option-container">
         {{ OptionTitle(option_name, option) }}
-        <div class="option-list" id="{{ option_name }}-container" data-keys-type="list"></div>
+        <div class="option-subcontainer">
+            <div class="option-inputs js-required">
+                <input
+                    type="text"
+                    id="{{ option_name }}-search"
+                    placeholder="Search {{ option.display_name | default(option_name) }}..."
+                >
+            </div>
+            {% if not preload and (
+                (option.valid_keys | length > 0) and is_large_list(option.valid_keys, 100) or
+                (option.valid_keys | length == 0) and is_large_list(world.item_names, 100))
+            %}
+                <div class="option-list" id="{{ option_name }}-container" data-keys-type="list">
+                    {{ NoJSFullLoadDisclaimer() }}
+                </div>
+            {% else %}
+                <div class="option-list" id="{{ option_name }}-container" data-keys-type="list" data-preloaded="true">
+                    {% for item_name in (option.valid_keys | sort if (option.valid_keys | length > 0) else world.item_names | sort) %}
+                        <div class="option-entry">
+                            <input
+                                type="checkbox"
+                                id="{{ option_name }}-{{ item_name }}"
+                                name="{{ option_name }}"
+                                value="{{ item_name }}"
+                                {{ "checked" if item_name in option.default }}
+                            >
+                            <label for="{{ option_name }}-{{ item_name }}">{{ item_name }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
     </div>
 {% endmacro %}
 
 {% macro OptionSet(option_name, option) %}
-    <div class="option-container">
-        {{ OptionTitle(option_name, option) }}
-        <div class="option-list" id="{{ option_name }}-container" data-keys-type="list"></div>
-    </div>
+    {# Use same logic as OptionList #}
+    {{ OptionList(option_name, option) }}
 {% endmacro %}
 
 {% macro OptionTitle(option_name, option) %}
@@ -232,4 +352,13 @@
             🎲
         </label>
     </div>
+{% endmacro %}
+
+{% macro NoJSFullLoadDisclaimer() %}
+    <noscript>
+        <div class="js-disclaimer">
+            This list contains a large amount of possible values that cannot be loaded without causing performance
+            issues in some browsers. If you wish to load it anyway, please click <a href="?preload-all=True">here</a>.
+        </div>
+    </noscript>
 {% endmacro %}
