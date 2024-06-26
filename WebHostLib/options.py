@@ -88,7 +88,8 @@ def test_action_2(world_name: str) -> dict:
                 "range_start": option.range_start,
                 "range_end": option.range_end,
             }
-        else:
+        elif issubclass(option, Options.NumericOption):
+            print(option_name)
             options[option_name] = {
                 "default": option.name_lookup[option.default] if not isinstance(option.default, str) else option.default
             }
