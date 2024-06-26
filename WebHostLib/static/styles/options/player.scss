@@ -28,6 +28,20 @@ html {
         box-sizing: border-box;
     }
 
+    .alert {
+        width: calc(100% - 1rem);
+        border-radius: 4px;
+        background-color: #f3f309;
+        color: #000000;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        text-align: center;
+
+        &:empty {
+            display: none;
+        }
+    }
+
     #options-header {
         margin-bottom: 1.5rem;
 
