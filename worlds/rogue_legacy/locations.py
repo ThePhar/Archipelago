@@ -11,8 +11,10 @@ MAX_SILVER_CHESTS = 75
 MIN_SILVER_CHESTS = 25
 MAX_GOLD_CHESTS = 50
 MIN_GOLD_CHESTS = 10
-MAX_FAIRY_CHESTS = 50
+MAX_FAIRY_CHESTS = 25
 MIN_FAIRY_CHESTS = 0
+MIN_DIARIES = 2
+MAX_DIARIES = 75
 
 
 class FairyChestCondition(IntEnum):
@@ -103,7 +105,7 @@ rl_locations_data: dict[str, LocationData | list[LocationData]] = {
     "manor_observatory_base":   LocationData("Manor - Observatory Building"),
     "manor_observatory_scope":  LocationData("Manor - Observatory Telescope"),
 
-    # One-offs
+    # One-off Challenges
     "melophobia":               LocationData("Melophobia"),       # Interact with Jukebox
     "coulrophobia":             LocationData("Coulrophobia"),     # Beat a Carnival
     "zoophobia":                LocationData("Zoophobia"),        # Defeat all Mini-bosses
@@ -112,9 +114,10 @@ rl_locations_data: dict[str, LocationData | list[LocationData]] = {
     "eutychemaphobia":          LocationData("Eutychemaphobia"),  # Cheapskate Elf Reward
 
     # Diaries
-    "diaries":                  [LocationData(f"Diary Entry #{i + 1}") for i in range(25)],
+    "diaries":                  [LocationData(f"Diary Entry #{i + 1}") for i in range(MAX_DIARIES)],
 
     # Chests
+    "chests_brown":             [LocationData(f"Brown Chest {int_to_roman(i+1)}") for i in range(MAX_BROWN_CHESTS)],
     "chests_silver":            [LocationData(f"Silver Chest {int_to_roman(i+1)}") for i in range(MAX_SILVER_CHESTS)],
     "chests_gold":              [LocationData(f"Gold Chest {int_to_roman(i+1)}")   for i in range(MAX_GOLD_CHESTS)],
     "chests_fairy":             [LocationData(f"Fairy Chest {int_to_roman(i+1)}")  for i in range(MAX_FAIRY_CHESTS)],
@@ -145,8 +148,17 @@ rl_locations_data: dict[str, LocationData | list[LocationData]] = {
 
 location_name_to_id: dict[str, int] = {}
 for value in rl_locations_data.values():
-    if value is list:
+    if isinstance(value, list):
         for data in value:
             location_name_to_id[data.name] = data.id
     elif not value.event:
         location_name_to_id[value.name] = value.id
+
+location_name_groups: dict[str, set[str]] = {
+    "Manor": {data.name for key, data in rl_locations_data.items() if key.startswith("manor_")},
+    "Brown Chests": {data.name for data in rl_locations_data["chests_brown"]},
+    "Silver Chests": {data.name for data in rl_locations_data["chests_silver"]},
+    "Gold Chests": {data.name for data in rl_locations_data["chests_gold"]},
+    "Fairy Chests": {data.name for data in rl_locations_data["chests_fairy"]},
+    "Diaries": {data.name for data in rl_locations_data["diaries"]},
+}
