@@ -438,7 +438,6 @@ class RogueLegacyOptions(PerGameCommonOptions):
     level_limit: LevelCap
     shuffle_blacksmith: ShuffleBlacksmithSlots
     shuffle_enchantress: ShuffleEnchantressSlots
-
     chests_brown: BrownChests
     chests_silver: SilverChests
     chests_gold: GoldChests
@@ -446,7 +445,6 @@ class RogueLegacyOptions(PerGameCommonOptions):
     diary_entries: DiaryEntries
     neo_bosses: NeoBosses
     additional_challenges: AdditionalChallenges
-
     enemy_scaling: EnemyScaling
     castle_scaling: CastleScaling
     ngplus_requirement: NGPRequirement
@@ -456,16 +454,13 @@ class RogueLegacyOptions(PerGameCommonOptions):
     fountain_hunt: FountainHunt
     fountain_pieces_available: FountainPiecesAvailable
     fountain_pieces_required: FountainPiecesRequired
-
     character_names_sir: SirCharacterNames
     character_names_lady: LadyCharacterNames
-
     max_health: MaxHealthLevel
     max_mana: MaxManaLevel
     max_attack: MaxAttackLevel
     max_magic_damage: MaxMagicLevel
     trap_percentage: TrapPercentage
-
     death_link: DeathLink
     start_inventory_from_pool: StartInventoryPool
 
