@@ -80,7 +80,7 @@ class BossChamberShuffle(Toggle):
 
     display_name = "Boss Chamber Shuffle"
 
-    def generate_boss_order(self, world: RogueLegacyWorld):
+    def generate_boss_order(self, world: "RogueLegacyWorld"):
         boss_order = ["khidr", "alex", "leon", "herodotus"]
         if world.options.neo_bosses:
             boss_order.extend(["khidr_neo", "alex_neo", "leon_neo", "herodotus_neo", "traitor_neo"])
@@ -347,7 +347,7 @@ class FountainHunt(Toggle):
 
     display_name = "Fountain Hunt"
 
-    def generate_requirement(self, world: RogueLegacyWorld) -> int:
+    def generate_requirement(self, world: "RogueLegacyWorld") -> int:
         if not self:  # If disabled
             return 0
 
