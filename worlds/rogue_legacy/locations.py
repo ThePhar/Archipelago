@@ -16,6 +16,8 @@ MIN_FAIRY_CHESTS = 0
 MIN_DIARIES = 2
 MAX_DIARIES = 75
 
+id_index = 1
+
 
 class FairyChestCondition(IntEnum):
     none = 0
@@ -52,12 +54,11 @@ class LocationData:
     event: bool = False
     id: int | None = None
 
-    __index: int = 1
-
     def __post_init__(self):
         if self.id is None and not self.event:
-            self.id = self.__index
-            self.__index += 1
+            global id_index
+            self.id = id_index
+            id_index += 1
 
 
 class RogueLegacyLocation(Location):

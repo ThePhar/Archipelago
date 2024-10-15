@@ -2,6 +2,8 @@ from dataclasses import dataclass
 
 from BaseClasses import Item, ItemClassification
 
+id_index = 1
+
 
 @dataclass
 class ItemData:
@@ -14,8 +16,9 @@ class ItemData:
 
     def __post_init__(self):
         if self.id is None and not self.event:
-            self.id = self.__index
-            self.__index += 1
+            global id_index
+            self.id = id_index
+            id_index += 1
 
 
 class RogueLegacyItem(Item):

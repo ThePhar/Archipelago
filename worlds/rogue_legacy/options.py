@@ -395,7 +395,7 @@ class SirCharacterNames(OptionSet):
 
         if invalid_names:
             raise OptionError(
-                f"The following 'Sir' character names contain invalid characters:\n\t"
+                f"The following 'Sir' character name(s) contain invalid characters:\n\t"
                 + "\n\t".join([f"{name}: {invalid_chars}" for name, invalid_chars in invalid_names.items()])
                 + "\n\nPlease make the required adjustments and retry."
             )
@@ -426,8 +426,9 @@ class LadyCharacterNames(OptionSet):
 
         if invalid_names:
             raise OptionError(
-                f"The following 'Lady' character names contain invalid characters:\n\t"
-                "\n\t".join([f"{name}: {invalid_chars}" for name, invalid_chars in invalid_names.items()])
+                f"The following 'Lady' character name(s) contain invalid characters:\n\t"
+                + "\n\t".join([f"{name}: {invalid_chars}" for name, invalid_chars in invalid_names.items()])
+                + "\n\nPlease make the required adjustments and retry."
             )
 
 
