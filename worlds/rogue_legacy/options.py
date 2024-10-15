@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from Options import (
     Choice,
@@ -15,6 +16,7 @@ from Options import (
     Accessibility,
     StartInventoryPool,
 )
+
 from .locations import (
     MIN_BROWN_CHESTS,
     MAX_BROWN_CHESTS,
@@ -28,6 +30,9 @@ from .locations import (
     MAX_DIARIES,
 )
 from .utils import check_name_allowed
+
+if TYPE_CHECKING:
+    from . import RogueLegacyWorld
 
 
 class EnemyScaling(Choice):
@@ -73,6 +78,15 @@ class BossChamberShuffle(Toggle):
     """
 
     display_name = "Boss Chamber Shuffle"
+
+    def generate_boss_order(self, world: RogueLegacyWorld):
+        boss_order = ["khidr", "alex", "leon", "herodotus"]
+        if world.options.neo_bosses:
+            boss_order.extend(["khidr_neo", "alex_neo", "leon_neo", "herodotus_neo", "traitor_neo"])
+        if self:  # If enabled.
+            world.random.shuffle(boss_order)
+
+        return boss_order
 
 
 class BrownChests(Range):

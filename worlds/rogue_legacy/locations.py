@@ -3,6 +3,7 @@ from enum import IntEnum
 from typing import Literal
 
 from BaseClasses import Location
+
 from .utils import int_to_roman
 
 MAX_BROWN_CHESTS = 300

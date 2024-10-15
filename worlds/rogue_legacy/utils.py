@@ -14,8 +14,8 @@ roman_numerals = [
     (1, "I"),
 ]
 
-# fmt: off
 allowed_characters = {
+    # fmt: off
     # Straight from the Junicode font from Rogue Legacy. If it's not in here, then the game wouldn't load it anyway.
     " ", "!", '"', "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/",
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?",
@@ -35,9 +35,8 @@ allowed_characters = {
     "ж", "з", "и", "й", "к", "л", "м", "н", "о", "п", "р", "с", "т", "у", "ф", "х",
     "ц", "ч", "ш", "щ", "ъ", "ы", "ь", "э", "ю", "я", "–", "—", "―", "’", "”", "„",
     "…", "\\",
+    # fmt: on
 }
-
-# fmt: on
 
 
 def int_to_roman(num: int) -> str:
