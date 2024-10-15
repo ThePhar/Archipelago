@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from math import floor
 from typing import TYPE_CHECKING
 
 from Options import (
@@ -345,6 +346,14 @@ class FountainHunt(Toggle):
     """
 
     display_name = "Fountain Hunt"
+
+    def generate_requirement(self, world: RogueLegacyWorld) -> int:
+        if not self:  # If disabled
+            return 0
+
+        available = world.options.fountain_pieces_available.value
+        required_factor = world.options.fountain_pieces_required.value / 100.0
+        return min(1, floor(available * required_factor))
 
 
 class FountainPiecesAvailable(Range):
