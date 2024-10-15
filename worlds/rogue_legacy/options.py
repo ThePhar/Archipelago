@@ -435,7 +435,7 @@ class LadyCharacterNames(OptionSet):
 @dataclass
 class RogueLegacyOptions(PerGameCommonOptions):
     children: Children
-    level_cap: LevelCap
+    level_limit: LevelCap
     shuffle_blacksmith: ShuffleBlacksmithSlots
     shuffle_enchantress: ShuffleEnchantressSlots
 
