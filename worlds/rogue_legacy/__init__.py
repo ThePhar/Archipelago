@@ -46,7 +46,6 @@ class RogueLegacyWorld(World):
     boss_order: list[str]
 
     def generate_early(self) -> None:
-        # Compute boss order.
         self.boss_order = self.options.boss_shuffle.generate_boss_order(self)
 
     def fill_slot_data(self) -> dict[str, Any]:
