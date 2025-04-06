@@ -1,16 +1,29 @@
 # Clique
 
-## What is this game?
+## What is a &ldquo;Clique&rdquo;?
 
-~~Clique is a psychological survival horror game where a player must survive the temptation to press red buttons.~~
+~~__Clique__ is a psychological survival horror game where players must resist the temptation to press large buttons 
+that may destroy the world.~~
 
-Clique is a joke game developed for Archipelago in March 2023 to showcase how easy it can be to develop a world for
-Archipelago. The objective of the game is to press the big red button. If a player is playing on `hard_mode`, they must
-wait for someone else in the multiworld to "activate" their button before they can press it.
+__Clique__ was originally a silly &ldquo;game&rdquo; developed as a joke to the answer: _&ldquo;What is the minimal 
+amount of interactive gameplay possible?&rdquo;_ The answer? _&ldquo;Click a button and win!&rdquo;_
 
-Clique can be played on most modern HTML5-capable browsers.
+While still possible to play the classic variant, __Clique__ has been updated to include additional 
+&ldquo;gameplay&rdquo; elements for the 2.0 update, including:
 
-## Where is the options page?
+- Additional Buttons
+- Additional Button Cosmetics
+- Dissatisfaction Traps
+- Button Text Plando
+- Proper &ldquo;DeathLink&rdquo; Support
+- ArchipIDLE-Lite Integration
+- ~~Destruction Code Entry~~
 
-The [player options page for this game](../player-options) contains all the options you need to configure
-and export a config file.
+## How do I play Clique?
+
+__Clique__ can be played in any up-to-date common modern web browser at the 
+__[official website](https://clique.pharware.com)__.
+
+## How do I configure a game for Clique?
+
+You can find all the possible player options for this game __[here](../player-options)__.
