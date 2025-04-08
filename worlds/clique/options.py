@@ -1,233 +1,228 @@
-import random
 from dataclasses import dataclass
 from typing import Iterable, Mapping, NamedTuple
-from typing_extensions import Self
 
-import Options
-from Options import Choice, NamedRange, OptionError, OptionGroup, OptionSet, PerGameCommonOptions, Range, Removed
+from Options import (DefaultOnToggle, FreeText, OptionError, OptionSet, PerGameCommonOptions, PlandoTexts, Range,
+                     Removed, StartInventoryPool)
 from .data import POSSIBLE_BUTTON_COLORS
 
 
-class Mode(Choice):
-    """The game mode's activation condition for activating **The Button** and completing your objective.
+class Buttonsanity(Range):
+    """Adds extra buttons to the item pool that must be found and pressed to activate **The Button**."""
 
-        - `classic` - **The Button** is activated from the start, allowing the player to win when ready.
-        - `activation` - **The Button** requires a **Button Activation** item to be pressed.
-        - `buttons` - **The Button** requires finding and pressing a certain number of additional buttons before
-            **The Button** can be pressed.
-
-    In non-classic modes, you are given a freebie item to start.
-    """
-    display_name = "Activation Condition"
-    option_classic = 0
-    option_activation = 1
-    option_buttons = 2
-    default = 0
-
-
-class ExtraButtons(Range):
-    """Adds a number of extra buttons to add to the item pool that must be found and pressed to activate **The Button**.
-
-    This option is ignored if the *Mode* is not set to `buttons`.
-    """
-    display_name = "Extra Buttons"
-    range_start = 1
+    display_name = "Buttonsanity"
+    range_start = 0
     range_end = 64
-    default = 1
+    default = 0
 
 
 class Dissatisfaction(Range):
-    """Creates a percentage of client-only fake buttons, that contain the **Feeling of Dissatisfaction**. Pressing these
-    buttons does not count towards your buttons requirement nor awards any hint points. Each fake button added replaces
-    an **Extra Button** with an **Extra Two Buttons** item in the pool.
+    """Adds a percentage of extra buttons to the item pool that only contain the **Feeling of Dissatisfaction**. Adding
+    extra trapped buttons causes some **Extra Button** to become **Extra Two Buttons** to fit in the item pool.
 
-    Obtaining **The Feeling of Satisfaction** makes the player immune to the **Feeling of Dissatisfaction** effects.
-
-    This option is ignored if the *Mode* is not set to `buttons`.
+    Activating these buttons does not count towards **The Button** activation requirement.
     """
-    display_name = "Dissatisfaction Rate"
+
+    display_name = "Dissatisfaction"
     range_start = 0
-    range_end = 100
+    range_end = 80
     default = 0
 
 
-class ButtonColors(OptionSet):
-    """Sets the available colors for any buttons."""
-    display_name = "Button Color(s)"
+class DissatisfactionLink(DefaultOnToggle):
+    """Send DeathLinks to all DeathLink-participating players if you receive the **Feeling of Dissatisfaction**.
+
+    DeathLinks are always sent when a button is pressed with the text, "***DeathLink***", printed on it. There is no
+    escape.
+    """
+
+    display_name = "DissatisfactionLink"
+
+
+class ColorBlacklist(OptionSet):
+    """Prevents certain colors from randomly appearing on any buttons."""
+
+    display_name = "Color Blacklist"
     valid_keys = POSSIBLE_BUTTON_COLORS
-    default = valid_keys
 
     def verify_keys(self) -> None:
         super().verify_keys()
-
-        # No empty sets allowed.
-        if not self.value:
-            raise OptionError(f"At least 1 color must be supplied: {', '.join(sorted(list(POSSIBLE_BUTTON_COLORS)))}")
+        if self.value == set(POSSIBLE_BUTTON_COLORS):
+            raise OptionError(f"Cannot blacklist all possible colors; at least one color must be allowed!")
 
 
-class DeathLink(Options.DeathLink):
-    """Allow this slot to send and receive DeathLinks to all other participating players. Receiving a DeathLink gives
-    you the **Feeling of Dissatisfaction**.
+class EasterEgg(FreeText):
+    """Special codes that may cause special effects on the Clique client."""
 
-    You will send a DeathLinks if you:
-        - Find a **Feeling of Dissatisfaction**.
-        - Push a button with the literal text, `DeathLink`, printed on it.
-    """
-    display_name = "DeathLink"
-    default = True
+    display_name = "Code Entry"
+    default = ""
 
 
-class PlandoTexts(Options.PlandoTexts):
-    """Override the text of specific buttons with your own text. Requires host to have enabled "Text" plando.
+class CliquePlandoTexts(PlandoTexts):
+    """Override the text and color of specific buttons. Button text will be rendered uppercased on client. This requires
+    the host to have enabled the `text` plando option on generation.
 
     The format is as follows::
-        - at: the_button
-          text: "Your Desired Button Text"
-          color: "red"  # A specific color for this button. Optional, and defaults to "random", if omitted.
-          percentage: 100  # Chance of overriding this button text. Optional, and defaults to 100, if omitted.
+        - at: the_button           # The specific button to modify.
+          text: "You're Winner!"   # The specific text for this button. Defaults to `null`, if omitted.
+          color: "red"             # The specific color for this button. Defaults to "random", if omitted.
+          percentage: 100          # Chance of overriding this button text. Defaults to 100 (guaranteed), if omitted.
 
-    You can also, optionally, weight the `at`, `text`, and/or `color` properties. For example::
+    You can also, optionally, choose weights for the `at`, `text`, and/or `color` properties. For example::
         - at:
-            the_button: 5
-            extra_button_1: 5
-            extra_button_2: 10
-            trap_button_1: 1
+            button_1: 5
+            any_button: 5
+            any_trap_button: 1
           text:
-            "This Is A Button": 5
-            "This Is Another Button": 10
-            "": 1  # Empty strings are also allowed (will make blank buttons)!
+            "Release Surprise": 5
+            "Release %ITEM%": 1
+            "": 1                  # Empty strings are allowed and will force blank buttons.
+            null: 1                # Client will choose a random text on initial connection.
           color:
-            red: 1
-            orange: 4
-            random: 5
+            "red": 1
+            "#123fff": 5           # Custom hex-colors are supported (case-insensitive).
+            "random": 5            # Client will choose a random non-blacklisted color on initial connection.
 
-    Valid location keys are: `the_button`, `extra_button_<i>`, or `fake_button_<i>` (with <i> being a number).
+    Notes:
+        - Valid `at` keys are as follows:
+            - `the_button`: Corresponds to the final button that sends the goal completion.
+            - `button_{i}`: Corresponds to the `i`th button.
+                - e.g., `button_2` corresponds to the button that releases the item from **Button 2 Pressed**.
+            - `any_button`: Randomly picks any button (excluding **The Button**).
+            - `any_safe_button`: Randomly picks any button that contains an item (excluding **The Button**).
+            - `any_trap_button`: Randomly picks any button that contains a **Feeling of Dissatisfaction** trap.
+        - The `any`-style `at` keys will not override explicit text set on an `button_{i}`.
+        - Any `text` values can also contain any of the following placeholder text to have it change based on room:
+            - `%SELF%`: Becomes your slot's name.
+            - `%RANDOM%`: Becomes any random slot name in the multiworld.
+            - `%ITEM%`: Becomes the name of the containing item, unless it's a trap (then it will be a random item).
+            - `%PLAYER%`: Becomes the slot name of the player that would receive this item when pressed.
+            - `%GAME%`: Becomes the game name of the player that would receive this item when pressed.
+            - `%COLOR%`: Becomes the color of this button.
+        - If any button contains the string, `DeathLink`, the button will send a DeathLink when pressed.
+        - If `text` is set to `null`, the text will be automatically chosen by the client.
     """
+
     class PlandoText(NamedTuple):
         at: str
-        text: str
+        text: str | None
         color: str
         percentage: int = 100
 
     value: list[PlandoText]
+    valid_placeholders = {"SELF", "RANDOM", "ITEM", "PLAYER", "GAME", "COLOR"}
     valid_keys = [
         "the_button",
-        *[f"extra_button_{i}" for i in range(1, ExtraButtons.range_end)],
-        *[f"trap_button_{i}" for i in range(1, ExtraButtons.range_end)],
+        "any_button",
+        "any_safe_button",
+        "any_trap_button",
+        *[f"button_{i + 1}" for i in range(Buttonsanity.range_end * 2)],
     ]
 
     @staticmethod
-    def verify_color(colors: Iterable[str]) -> bool:
+    def verify_colors(colors: Iterable[str]) -> bool:
+        import re
+
+        valid_colors = {*POSSIBLE_BUTTON_COLORS, "random"}
         for color in colors:
-            if color not in {*POSSIBLE_BUTTON_COLORS, "random"}:
+            # If color is a hex value, ensure it's a supported format.
+            if color.startswith("#") and re.match(r"^#(?:[0-9a-f]{3}){1,2}$", color, re.IGNORECASE):
+                continue
+
+            if color not in valid_colors:
                 return False
 
         return True
 
     @classmethod
-    def from_any(cls, data: Options.PlandoTextsFromAnyType) -> Self:
+    def warn_unknown_placeholders(cls, texts: Iterable[str]):
+        import logging
+        import re
+
+        for text in texts:
+            # That's a scary regex, but it's only looking for specific `%value%` values.
+            matches = [match.group().upper() for match in re.finditer(r"(?:^|\s)%([^\s%]+?)%(?:$|\s)", text)]
+            for match in matches:
+                if match not in cls.valid_placeholders:
+                    continue
+
+                logging.warning(f"Unknown placeholder: '%{match}%' in `plando_texts`; client likely won't change text.")
+
+    @classmethod
+    def from_any(cls, data):
+        import random
+
         texts: list[cls.PlandoText] = []
-        if isinstance(data, Iterable):
-            for entry in data:
-                if isinstance(entry, Mapping):
-                    if random.random() < float(entry.get("percentage", 100) / 100):
-                        at = entry.get("at", None)
-                        if at is None:
-                            raise Options.OptionError('"at" must be a valid string or weighted list of strings!')
+        if not isinstance(data, Iterable):
+            raise OptionError(f"Cannot convert plando texts from non-list, got {type(data)}.")
 
-                        if isinstance(at, dict):
-                            if not at:
-                                raise Options.OptionError('"at" must be a valid string or weighted list of strings!')
+        for entry in data:
+            if isinstance(entry, Mapping):
+                entry: Mapping[str, any]
+                if random.random() >= float(entry.get("percentage", 100) / 100):
+                    continue
 
-                            at = random.choices(list(at.keys()), weights=list(at.values()), k=1)[0]
+                # 'at' Validation
+                at: str = entry.get("at")
+                if not at:
+                    raise OptionError('"at" must be a valid string or weighted list of valid strings.')
+                elif isinstance(at, dict):
+                    at = random.choices(list(at.keys()), list(at.values()))[0]
 
-                        color = entry.get("color", "random")
-                        if isinstance(color, dict):
-                            if not color:
-                                color = "random"
-                            elif cls.verify_color(color.keys()):
-                                color = random.choices(list(color.keys()), weights=list(color.values()), k=1)[0]
-                            else:
-                                raise Options.OptionError(
-                                    '"color" can only contain supported color values: '
-                                    f'{", ".join(sorted([*POSSIBLE_BUTTON_COLORS, "random"]))}')
-                        elif isinstance(color, str):
-                            if not cls.verify_color([color]):
-                                raise Options.OptionError(
-                                    '"color" can only contain supported color values: '
-                                    f'{", ".join(sorted([*POSSIBLE_BUTTON_COLORS, "random"]))}')
+                # 'text' Validation
+                text: str | None = entry.get("text")
+                if isinstance(text, dict):
+                    if not text:
+                        text = None
+                    else:
+                        cls.warn_unknown_placeholders(text.keys())
+                        text = random.choices(list(text.keys()), list(text.values()))[0]
+                elif text:
+                    cls.warn_unknown_placeholders([text])
 
-                        text = entry.get("text", None)
-                        if text is None:
-                            raise Options.OptionError('"text" must be a valid string or weighted list of strings!')
+                # 'color' Validation
+                color: str = entry.get("color", "random")
+                if isinstance(color, dict):
+                    if cls.verify_colors(color.keys()):
+                        color = random.choices(list(color.keys()), list(color.values()))[0]
+                    else:
+                        raise OptionError('"color" must be a valid color or weighted list of valid colors.')
+                elif not cls.verify_colors([color]):
+                    raise OptionError('"color" must be a valid color or weighted list of valid colors.')
 
-                        if isinstance(text, dict):
-                            if not text:
-                                raise Options.OptionError('"text" must be a valid string or weighted list of strings!')
+                texts.append(cls.PlandoText(at, text, color, entry.get("percentage", 100)))
 
-                            text = random.choices(list(text.keys()), weights=list(text.values()), k=1)[0]
+            elif isinstance(entry, cls.PlandoText) and random.random() < float(entry.percentage / 100):
+                texts.append(entry)
+            else:
+                raise OptionError(f"Cannot create plando texts from non-dictionary, got {type(entry)}.")
 
-                        texts.append(cls.PlandoText(at, text, color, entry.get("percentage", 100)))
-
-                elif isinstance(entry, cls.PlandoText):
-                    if random.random() < float(entry.percentage / 100):
-                        texts.append(entry)
-                else:
-                    raise Exception(f"Cannot create plando text from non-dictionary type, got {type(entry)}")
-
-            return cls(texts)
-        else:
-            raise NotImplementedError(f"Cannot Convert from non-list, got {type(data)}")
+        return cls(texts)
 
 
 # Removed options.
 class ButtonColor(Removed):
-    """This option has been replaced with the *Button Colors* option."""
+    """This option has been removed and superseded by the *Plando Texts* option."""
     pass
 
 
 class HardMode(Removed):
-    """This option has been replaced with the *Button Pool* option."""
+    """This option has been removed and superseded by the *Buttonsanity* option."""
     pass
-
-
-# Overrides for built-in common options.
-class ExcludeLocations(Options.ExcludeLocations):
-    __doc__ = Options.ExcludeLocations.__doc__
-
-class PriorityLocations(Options.PriorityLocations):
-    __doc__ = Options.PriorityLocations.__doc__
-    default = {"Final Button", "Starting Button"}
 
 
 @dataclass
 class CliqueOptions(PerGameCommonOptions):
-    progression_balancing: Options.ProgressionBalancing
-    accessibility: Options.Accessibility
+    # Overrides
+    start_inventory: StartInventoryPool
 
-    mode: Mode
-    extra_buttons: ExtraButtons
-    dissatisfaction_rate: Dissatisfaction
-    button_colors: ButtonColors
-    death_link: DeathLink
-    plando_texts: PlandoTexts
+    # Clique 2.0 Options
+    buttonsanity: Buttonsanity
+    dissatisfaction: Dissatisfaction
+    dissatisfaction_link: DissatisfactionLink
+    color_blacklist: ColorBlacklist
+    code_entry: EasterEgg
+    plando_texts: CliquePlandoTexts
 
-    # Removed options from v1.x versions of Clique.
+    # Clique 1.x Options - Removed
     color: ButtonColor
     hard_mode: HardMode
-
-    # Overrides
-    priority_locations: PriorityLocations
-    exclude_locations: ExcludeLocations
-    start_inventory: Options.StartInventoryPool
-
-
-option_groups: list[OptionGroup] = [
-    OptionGroup("Multiworld Options", [
-        Options.ProgressionBalancing,
-        Options.Accessibility,
-        DeathLink,
-        PriorityLocations,
-        ExcludeLocations,
-    ]),
-]
