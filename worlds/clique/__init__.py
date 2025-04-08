@@ -1,10 +1,11 @@
+from math import ceil
 from typing import TYPE_CHECKING
 
 from BaseClasses import ItemClassification, Region, Tutorial
 from worlds.AutoWorld import WebWorld, World
 from .items import CliqueItem, CliqueItemData, item_data, item_table
 from .locations import CliqueLocation, CliqueRegion, location_groups, location_table
-from .options import CliqueOptions, option_groups
+from .options import CliqueOptions
 
 if TYPE_CHECKING:
     from BaseClasses import MultiWorld, CollectionState
@@ -12,9 +13,9 @@ if TYPE_CHECKING:
 
 class CliqueWebWorld(WebWorld):
     theme = "partyTime"
-    bug_report_page = "https://github.com/ThePhar/Clique/issues"
     rich_text_options_doc = True
-    option_groups = option_groups
+    bug_report_page = "https://github.com/ThePhar/Clique/issues"
+    options_page = "https://clique.pharware.com/create"
     tutorials = [
         Tutorial(
             tutorial_name="Multiworld Start Guide",
@@ -45,58 +46,65 @@ class CliqueWorld(World):
 
         self.extras: int = 0
         self.traps: int = 0
+        self.button_index = 0
+        self.buttons: list[CliqueItem] = []
         self.regions: list[CliqueRegion] = []
-        self.colors: list[str] = []
         self.satisfaction = self.create_item("Feeling of Satisfaction")
-        self.trap_order: list[int] = []
 
     def create_item(self, name: str, track_button = False) -> CliqueItem:
-        item = CliqueItem(name, item_data[name].type, item_data[name].code, self.player)
+        item = CliqueItem(name, item_data[name].classification, item_data[name].code, self.player)
 
         # Classify buttons as prog+trap if dissatisfaction is in the item pool.
         if "Button" in name and self.traps:
             item.classification = ItemClassification.progression | ItemClassification.trap
 
+        if track_button:
+            self.buttons.append(item)
+
         return item
 
-    def create_location(self, name: str, region: Region) -> CliqueLocation:
-        return CliqueLocation(self.player, name, location_table.get(name, None), region)
+    def create_location(self, name: str, region: CliqueRegion, increment_index = False) -> CliqueLocation:
+        location = CliqueLocation(self.player, name, location_table.get(name, None), region)
+        if increment_index:
+            self.button_index += 1
+
+        return location
+
+    def get_filler_item_name(self) -> str:
+        return "Nothing"
 
     def generate_early(self) -> None:
-        # Get all allowed colors for additional buttons and sort the set to guarantee determinism.
-        self.colors = list(self.options.button_colors.value).sort()
-
-        # Determine extra counts.
-        if self.options.mode == "buttons":
-            self.extras = self.options.extra_buttons.value
-            self.traps = round(self.extras * (self.options.dissatisfaction_rate.value / 100))
-
-        # Enforce traps as local.
-        self.options.non_local_items.value.discard("Feeling of Dissatisfaction")
-        self.options.local_items.value.add("Feeling of Satisfaction")
+        if self.options.buttonsanity > 0:
+            self.extras = self.options.buttonsanity.value
+            self.traps = ceil(self.extras * (self.options.dissatisfaction.value / 100))
 
     def create_regions(self) -> None:
         start_region = CliqueRegion("The Tempter's Realm", self.player, self.multiworld)
-        final_region = CliqueRegion("The Final Button Pedestal", self.player, self.multiworld)
+        final_region = CliqueRegion("The Golden Pedestal", self.player, self.multiworld)
         start_region.connect(final_region, rule=self._can_win)
 
-        if self.options.mode != "classic":
+        # Create static locations.
+        final_region.locations.append(self.create_location("The Button", final_region))
+        if self.options.buttonsanity > 0:
             start_region.locations.append(self.create_location("The Tempter's Gift", start_region))
 
-        # If we're running a single button seed, we just create the one button.
-        if self.options.mode != "buttons":
-            final_region.locations.append(self.create_location("The Button", start_region))
-            self.multiworld.regions += [start_region, final_region]
-            return
-
-        final_region.locations.append(self.create_location("The Final Button", final_region))
-
-        # Deal with the extra buttons.
+        # Create a region for each button in the item pool.
         for i in range(self.extras):
-            region = CliqueRegion(f"Extra Region {i}", self.player, self.multiworld)
-            region.locations.append(self.create_location(f"Extra Button {i + 1}", region))
-            start_region.connect(region, rule=lambda s, r=region: self._can_access_region(s, r))
+            region = CliqueRegion(f"Button Region {i}", self.player, self.multiworld)
+            start_region.connect(region, rule=lambda state, r=region: self._can_access_region(state, r))
+
+            # If dissatisfaction traps are in the pool, we need to signal that these regions will have two buttons.
+            if i < self.traps:
+                region.dual_region = True
+
             self.regions.append(region)
+
+        # Shuffle regions and create locations (shuffled so it's not predictable which region has two locations).
+        self.random.shuffle(self.regions)
+        for region in self.regions:
+            region.locations.append(self.create_location(f"Button {self.button_index} Pressed", region, True))
+            if region.dual_region:
+                region.locations.append(self.create_location(f"Button {self.button_index} Pressed", region, True))
 
         self.multiworld.regions += [start_region, *self.regions, final_region]
 
@@ -104,69 +112,77 @@ class CliqueWorld(World):
         # Every world must have a satisfaction item (it's the law).
         item_pool: list[CliqueItem] = [self.satisfaction]
 
-        if self.options.mode == "activation":
-            item_pool.append(self.create_item("Button Activation"))
+        # All buttonsanity seeds include lore snippets.
+        if self.options.buttonsanity > 0:
+            item_pool.append(self.create_item("Clique Lore"))
 
-        for i in range(self.extras):
-            if i < self.traps:
-                item_name = "Extra Two Buttons"
-            else:
-                item_name = "Extra Button"
-
+        # Create buttons and assign them to the regions.
+        for region in self.regions:
+            item_name = "Extra Two Buttons" if region.dual_region else "Extra Button"
             item = self.create_item(item_name, True)
+            item.unlocking_region = region
             item_pool.append(item)
+
+        # Place traps in random locations, if dissatisfaction present.
+        if self.traps:
+            button_locs: list[CliqueLocation] = [location for region in self.regions for location in region.locations]
+            self.random.shuffle(button_locs)
+            for i in range(self.traps):
+                button_locs[i].place_locked_item(self.create_item("Feeling of Dissatisfaction"))
+                button_locs[i].fake = True
 
         self.multiworld.itempool += item_pool
 
     def set_rules(self) -> None:
-        self.trap_order = [*[0 for _ in range(self.extras)], *[1 for _ in range(self.traps)]]
-        self.random.shuffle(self.trap_order)
+        # The Button is always priority!
+        self.options.priority_locations.value.add("The Button")
 
-        region_index = 0
-        for i in range(len(self.trap_order)):
-            # Ignore traps.
-            if i:
-                continue
-
-            self.regions[region_index].button_requirement = i + 1
-            region_index += 1
-
-        # Completion condition for minimal accessibility.
         self.multiworld.completion_condition[self.player] = self._can_win
 
-    def get_filler_item_name(self) -> str:
-        return "A Filler Item That Does Nothing"
+    def extend_hint_information(self, hint_data: dict[int, dict[int, str]]) -> None:
+        for button in self.buttons:
+            location_owner = self.multiworld.get_player_name(button.location.player)
+            hint_text = f"In {location_owner}'s {button.location.name}"
+
+            location: CliqueLocation
+            for location in button.unlocking_region.locations:
+                hint_data[self.player][location.address] = hint_text
+
 
     def fill_slot_data(self) -> dict[str, any]:
-        location: CliqueLocation
         return {
             "version": 2,
-            "mapping": self.trap_order,
         }
 
     def collect(self, state: "CollectionState", item: CliqueItem) -> bool:
         state_changed = super().collect(state, item)
         if state_changed and "Button" in item.name:
-            state.prog_items[self.player]["Buttons"] += 1 if item.name == "Extra Button" else 2
-
+            state.prog_items[self.player][f"Access {item.unlocking_region.name}"] += 1
+            state.prog_items[self.player]["Buttons"] += self._get_safe_buttons(item)
         return state_changed
 
     def remove(self, state: "CollectionState", item: CliqueItem) -> bool:
         state_changed = super().remove(state, item)
         if state_changed and "Button" in item.name:
-            state.prog_items[self.player]["Buttons"] -= 1 if item.name == "Extra Button" else 2
-
+            state.prog_items[self.player][f"Access {item.unlocking_region.name}"] -= 1
+            state.prog_items[self.player]["Buttons"] -= self._get_safe_buttons(item)
         return state_changed
 
     def _can_access_region(self, state: "CollectionState", region: CliqueRegion):
-        return state.has(f"Buttons", self.player, region.button_requirement)
+        return state.has(f"Access {region.name}", self.player)
 
     def _can_win(self, state: "CollectionState"):
-        if self.options.mode == "classic":
-            return state.has("Feeling of Satisfaction", self.player)
+        return state.has_all_counts({
+            "Buttons": self.extras,
+            "Feeling of Satisfaction": 1,
+        }, self.player)
 
-        if self.options.mode == "activation":
-            return state.has("Button Activation", self.player)
+    @staticmethod
+    def _get_safe_buttons(item: CliqueItem) -> int:
+        safe_buttons = 0
+        location: CliqueLocation
+        for location in item.unlocking_region.locations:
+            if not location.fake:
+                safe_buttons += 1
 
-        if self.options.mode == "buttons":
-            return state.has("Buttons", self.player, self.extras + self.traps)
+        return safe_buttons

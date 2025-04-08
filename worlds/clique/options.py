@@ -25,7 +25,7 @@ class Dissatisfaction(Range):
     display_name = "Dissatisfaction"
     range_start = 0
     range_end = 80
-    default = 0
+    default = 20
 
 
 class DissatisfactionLink(DefaultOnToggle):

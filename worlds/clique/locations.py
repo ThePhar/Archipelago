@@ -1,4 +1,4 @@
-from BaseClasses import Location
+from BaseClasses import Location, Region
 
 from .data import BASE_ID
 from .options import Buttonsanity
@@ -6,6 +6,11 @@ from .options import Buttonsanity
 
 class CliqueLocation(Location):
     game = "Clique"
+    fake: bool = False
+
+
+class CliqueRegion(Region):
+    dual_region: bool = False
 
 
 # fmt: off
