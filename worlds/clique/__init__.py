@@ -51,15 +51,13 @@ class CliqueWorld(World):
         self.regions: list[CliqueRegion] = []
         self.satisfaction = self.create_item("Feeling of Satisfaction")
 
-    def create_item(self, name: str, track_button = False) -> CliqueItem:
+    def create_item(self, name: str) -> CliqueItem:
         item = CliqueItem(name, item_data[name].classification, item_data[name].code, self.player)
 
-        # Classify buttons as prog+trap if dissatisfaction is in the item pool.
-        if "Button" in name and self.traps:
-            item.classification = ItemClassification.progression | ItemClassification.trap
-
-        if track_button:
+        if "Button" in name:
             self.buttons.append(item)
+            if self.traps:
+                item.classification = ItemClassification.progression | ItemClassification.trap
 
         return item
 
