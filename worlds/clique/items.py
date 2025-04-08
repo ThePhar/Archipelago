@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from typing import NamedTuple
 
 from BaseClasses import Item, ItemClassification
 from .data import BASE_ID
@@ -10,26 +10,19 @@ class CliqueItem(Item):
     unlocking_region: CliqueRegion | None = None
 
 
-@dataclass
-class CliqueItemData:
-    code: int | None
+class CliqueItemData(NamedTuple):
+    code: int
     classification: ItemClassification
-    __counter = 0
-
-    def __init__(self, classification: ItemClassification):
-        self.code = BASE_ID + self.__counter
-        self.classification = classification
-        self.__counter += 1
 
 
 # fmt: off
 item_data: dict[str, CliqueItemData] = {
-    "Feeling of Satisfaction":       CliqueItemData(ItemClassification.progression),
-    "Feeling of Dissatisfaction":    CliqueItemData(ItemClassification.trap),
-    "Clique Lore":                   CliqueItemData(ItemClassification.filler),
-    "Extra Button":                  CliqueItemData(ItemClassification.progression),
-    "Extra Two Buttons":             CliqueItemData(ItemClassification.progression),
-    "Nothing":                       CliqueItemData(ItemClassification.filler),
+    "Feeling of Satisfaction":       CliqueItemData(BASE_ID + 0, ItemClassification.progression),
+    "Feeling of Dissatisfaction":    CliqueItemData(BASE_ID + 1, ItemClassification.trap),
+    "Clique Lore":                   CliqueItemData(BASE_ID + 2, ItemClassification.filler),
+    "Extra Button":                  CliqueItemData(BASE_ID + 3, ItemClassification.progression),
+    "Extra Two Buttons":             CliqueItemData(BASE_ID + 4, ItemClassification.progression),
+    "Nothing":                       CliqueItemData(BASE_ID + 5, ItemClassification.filler),
 }
 
 item_table = {name: data.code for name, data in item_data.items() if data.code}

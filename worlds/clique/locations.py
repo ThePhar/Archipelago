@@ -15,11 +15,11 @@ class CliqueRegion(Region):
 
 # fmt: off
 location_table: dict[str, int] = {
-    "The Button":              BASE_ID,
-    "The Tempter's Gift":      BASE_ID + 1,
-    **{f"Button {i} Pressed": (BASE_ID + 100) + i for i in range(Buttonsanity.range_end)},
+    "The Button":                BASE_ID,
+    "The Tempter's Gift":        BASE_ID + 1,
+    **{f"Extra Button {i + 1}": (BASE_ID + 100) + i for i in range(Buttonsanity.range_end * 2)},
 }
 
 location_groups: dict[str, list[str]] = {
-    "Intermediate Buttons": [f"Button {i} Pressed" for i in range(Buttonsanity.range_end)],
+    "Extra Buttons": [f"Extra Button {i + 1}" for i in range(Buttonsanity.range_end * 2)],
 }

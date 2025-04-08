@@ -46,7 +46,7 @@ class CliqueWorld(World):
 
         self.extras: int = 0
         self.traps: int = 0
-        self.button_index = 0
+        self.button_index = 1
         self.buttons: list[CliqueItem] = []
         self.regions: list[CliqueRegion] = []
         self.satisfaction = self.create_item("Feeling of Satisfaction")
@@ -81,7 +81,7 @@ class CliqueWorld(World):
     def create_regions(self) -> None:
         start_region = CliqueRegion("The Tempter's Realm", self.player, self.multiworld)
         final_region = CliqueRegion("The Golden Pedestal", self.player, self.multiworld)
-        start_region.connect(final_region, rule=self._can_win)
+        start_region.connect(final_region, rule=self._can_access_final_button)
 
         # Create static locations.
         final_region.locations.append(self.create_location("The Button", final_region))
@@ -102,9 +102,9 @@ class CliqueWorld(World):
         # Shuffle regions and create locations (shuffled so it's not predictable which region has two locations).
         self.random.shuffle(self.regions)
         for region in self.regions:
-            region.locations.append(self.create_location(f"Button {self.button_index} Pressed", region, True))
+            region.locations.append(self.create_location(f"Extra Button {self.button_index}", region, True))
             if region.dual_region:
-                region.locations.append(self.create_location(f"Button {self.button_index} Pressed", region, True))
+                region.locations.append(self.create_location(f"Extra Button {self.button_index}", region, True))
 
         self.multiworld.regions += [start_region, *self.regions, final_region]
 
@@ -140,18 +140,27 @@ class CliqueWorld(World):
         self.multiworld.completion_condition[self.player] = self._can_win
 
     def extend_hint_information(self, hint_data: dict[int, dict[int, str]]) -> None:
+        hint_data[self.player] = {}
         for button in self.buttons:
             location_owner = self.multiworld.get_player_name(button.location.player)
-            hint_text = f"In {location_owner}'s {button.location.name}"
+            hint_text = f"{location_owner}'s {button.location.name}"
 
             location: CliqueLocation
             for location in button.unlocking_region.locations:
                 hint_data[self.player][location.address] = hint_text
 
+        print()
+
 
     def fill_slot_data(self) -> dict[str, any]:
+        mapping = {}
+        for button in self.buttons:
+            location: CliqueLocation
+            mapping[f"{button.location.player}-{button.location.address}"] = [location.address for location in button.unlocking_region.locations]
+
         return {
             "version": 2,
+            "mapping": mapping
         }
 
     def collect(self, state: "CollectionState", item: CliqueItem) -> bool:
@@ -176,6 +185,9 @@ class CliqueWorld(World):
             "Buttons": self.extras,
             "Feeling of Satisfaction": 1,
         }, self.player)
+
+    def _can_access_final_button(self, state: "CollectionState"):
+        return state.has("Buttons", self.player, self.extras)
 
     @staticmethod
     def _get_safe_buttons(item: CliqueItem) -> int:
