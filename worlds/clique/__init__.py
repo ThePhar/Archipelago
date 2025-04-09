@@ -19,12 +19,12 @@ class CliqueWebWorld(WebWorld):
     options_page = "https://clique.pharware.com/create"
     tutorials = [
         Tutorial(
-            tutorial_name="Multiworld Start Guide",
-            description="The definitive “getting started” guide for 2.0 Cliquers.",
+            tutorial_name="The Clique Beginners Guide",
+            description="The definitive “getting started” multiworld guide for 2.0 Cliquers.",
             language="English",
             file_name="guide_en.md",
             link="guide/en",
-            authors=["Phar"]
+            authors=["Phar", "The Tempter"]
         )
     ]
 

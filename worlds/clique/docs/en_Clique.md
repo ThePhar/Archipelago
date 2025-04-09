@@ -28,3 +28,7 @@ __[official website](https://clique.pharware.com)__.
 ## How do I configure a game for Clique?
 
 You can find all the possible player options for this game __[here](../player-options)__.
+
+## Are there any other guides for connecting or configuring my experience?
+
+Check out the [setup guides](/tutorial/#Clique) on this website!
