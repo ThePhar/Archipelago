@@ -1,11 +1,12 @@
 from math import ceil
 from typing import TYPE_CHECKING
 
-from BaseClasses import ItemClassification, Region, Tutorial
+from BaseClasses import ItemClassification, Tutorial
 from worlds.AutoWorld import WebWorld, World
 from .items import CliqueItem, CliqueItemData, item_data, item_table
 from .locations import CliqueLocation, CliqueRegion, location_groups, location_table
 from .options import CliqueOptions
+from .rules import can_access_final_button, can_access_region, can_win, get_safe_buttons
 
 if TYPE_CHECKING:
     from BaseClasses import MultiWorld, CollectionState
@@ -29,17 +30,16 @@ class CliqueWebWorld(WebWorld):
 
 
 class CliqueWorld(World):
-    """The greatest game of all time."""
+    """The greatest “game” of all time, now with more buttons!"""
     game = "Clique"
     web = CliqueWebWorld()
     options: CliqueOptions
     options_dataclass = CliqueOptions
     location_name_to_id = location_table
     item_name_to_id = item_table
-    required_client_version = (0, 6, 0)
+    required_client_version = (0, 6, 1)
     location_name_groups = location_groups
     origin_region_name = "The Tempter's Realm"
-
 
     def __init__(self, multiworld: "MultiWorld", player: int):
         super().__init__(multiworld, player)
@@ -47,17 +47,18 @@ class CliqueWorld(World):
         self.extras: int = 0
         self.traps: int = 0
         self.button_index = 1
-        self.buttons: list[CliqueItem] = []
+        self.extra_buttons: list[CliqueItem] = []
         self.regions: list[CliqueRegion] = []
-        self.satisfaction = self.create_item("Feeling of Satisfaction")
+        self.satisfaction = self.create_item("Feeling of Satisfaction")  # The most important item, duh.
 
-    def create_item(self, name: str) -> CliqueItem:
+    def create_item(self, name: str, track_button = False) -> CliqueItem:
         item = CliqueItem(name, item_data[name].classification, item_data[name].code, self.player)
+        if track_button:
+            self.extra_buttons.append(item)
 
-        if "Button" in name:
-            self.buttons.append(item)
-            if self.traps:
-                item.classification = ItemClassification.progression | ItemClassification.trap
+        # If traps are in the pool, receiving a button could open up to dissatisfaction!
+        if "Button" in name and self.traps:
+            item.classification = ItemClassification.progression | ItemClassification.trap
 
         return item
 
@@ -79,7 +80,7 @@ class CliqueWorld(World):
     def create_regions(self) -> None:
         start_region = CliqueRegion("The Tempter's Realm", self.player, self.multiworld)
         final_region = CliqueRegion("The Golden Pedestal", self.player, self.multiworld)
-        start_region.connect(final_region, rule=self._can_access_final_button)
+        start_region.connect(final_region, rule=lambda state: can_access_final_button(state, self))
 
         # Create static locations.
         final_region.locations.append(self.create_location("The Button", final_region))
@@ -89,7 +90,7 @@ class CliqueWorld(World):
         # Create a region for each button in the item pool.
         for i in range(self.extras):
             region = CliqueRegion(f"Button Region {i}", self.player, self.multiworld)
-            start_region.connect(region, rule=lambda state, r=region: self._can_access_region(state, r))
+            start_region.connect(region, rule=lambda state, r=region: can_access_region(state, r))
 
             # If dissatisfaction traps are in the pool, we need to signal that these regions will have two buttons.
             if i < self.traps:
@@ -135,11 +136,11 @@ class CliqueWorld(World):
         # The Button is always priority!
         self.options.priority_locations.value.add("The Button")
 
-        self.multiworld.completion_condition[self.player] = self._can_win
+        self.multiworld.completion_condition[self.player] = lambda state: can_win(state, self)
 
     def extend_hint_information(self, hint_data: dict[int, dict[int, str]]) -> None:
         hint_data[self.player] = {}
-        for button in self.buttons:
+        for button in self.extra_buttons:
             location_owner = self.multiworld.get_player_name(button.location.player)
             hint_text = f"{location_owner}'s {button.location.name}"
 
@@ -147,12 +148,9 @@ class CliqueWorld(World):
             for location in button.unlocking_region.locations:
                 hint_data[self.player][location.address] = hint_text
 
-        print()
-
-
     def fill_slot_data(self) -> dict[str, any]:
         mapping = {}
-        for button in self.buttons:
+        for button in self.extra_buttons:
             location: CliqueLocation
             mapping[f"{button.location.player}-{button.location.address}"] = [location.address for location in button.unlocking_region.locations]
 
@@ -165,34 +163,12 @@ class CliqueWorld(World):
         state_changed = super().collect(state, item)
         if state_changed and "Button" in item.name:
             state.prog_items[self.player][f"Access {item.unlocking_region.name}"] += 1
-            state.prog_items[self.player]["Buttons"] += self._get_safe_buttons(item)
+            state.prog_items[self.player]["Buttons"] += get_safe_buttons(item)
         return state_changed
 
     def remove(self, state: "CollectionState", item: CliqueItem) -> bool:
         state_changed = super().remove(state, item)
         if state_changed and "Button" in item.name:
             state.prog_items[self.player][f"Access {item.unlocking_region.name}"] -= 1
-            state.prog_items[self.player]["Buttons"] -= self._get_safe_buttons(item)
+            state.prog_items[self.player]["Buttons"] -= get_safe_buttons(item)
         return state_changed
-
-    def _can_access_region(self, state: "CollectionState", region: CliqueRegion):
-        return state.has(f"Access {region.name}", self.player)
-
-    def _can_win(self, state: "CollectionState"):
-        return state.has_all_counts({
-            "Buttons": self.extras,
-            "Feeling of Satisfaction": 1,
-        }, self.player)
-
-    def _can_access_final_button(self, state: "CollectionState"):
-        return state.has("Buttons", self.player, self.extras)
-
-    @staticmethod
-    def _get_safe_buttons(item: CliqueItem) -> int:
-        safe_buttons = 0
-        location: CliqueLocation
-        for location in item.unlocking_region.locations:
-            if not location.fake:
-                safe_buttons += 1
-
-        return safe_buttons

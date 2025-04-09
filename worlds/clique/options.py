@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from typing import Iterable, Mapping, NamedTuple
 
-from Options import (DefaultOnToggle, FreeText, OptionError, OptionSet, PerGameCommonOptions, PlandoTexts, Range,
-                     Removed, StartInventoryPool)
+from Options import DefaultOnToggle, FreeText, OptionError, OptionSet, PerGameCommonOptions, PlandoTexts, Range, Removed
 from .data import POSSIBLE_BUTTON_COLORS
 
 
@@ -11,7 +10,7 @@ class Buttonsanity(Range):
 
     display_name = "Buttonsanity"
     range_start = 0
-    range_end = 64
+    range_end = 20
     default = 0
 
 
@@ -212,9 +211,6 @@ class HardMode(Removed):
 
 @dataclass
 class CliqueOptions(PerGameCommonOptions):
-    # Overrides
-    start_inventory: StartInventoryPool
-
     # Clique 2.0 Options
     buttonsanity: Buttonsanity
     dissatisfaction: Dissatisfaction
