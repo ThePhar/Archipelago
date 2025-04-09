@@ -16,6 +16,7 @@ def can_win(state: "CollectionState", world: "CliqueWorld") -> bool:
         {
             "Buttons": world.extras,
             "Feeling of Satisfaction": 1,
+            "Congraturations": 1,
         },
         world.player,
     )

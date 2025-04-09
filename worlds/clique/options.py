@@ -58,15 +58,15 @@ class EasterEgg(FreeText):
 
 class CliquePlandoTexts(PlandoTexts):
     """Override the text and color of specific buttons. Button text will be rendered uppercased on client. This requires
-    the host to have enabled the `text` plando option on generation.
+    the host to have enabled the ``text`` plando option on generation.
 
     The format is as follows::
         - at: the_button           # The specific button to modify.
-          text: "You're Winner!"   # The specific text for this button. Defaults to `null`, if omitted.
+          text: "You're Winner!"   # The specific text for this button. Defaults to ``null``, if omitted.
           color: "red"             # The specific color for this button. Defaults to "random", if omitted.
           percentage: 100          # Chance of overriding this button text. Defaults to 100 (guaranteed), if omitted.
 
-    You can also, optionally, choose weights for the `at`, `text`, and/or `color` properties. For example::
+    You can also, optionally, choose weights for the ``at``, ``text``, and/or ``color`` properties. For example::
         - at:
             button_1: 5
             any_button: 5
@@ -82,23 +82,23 @@ class CliquePlandoTexts(PlandoTexts):
             "random": 5            # Client will choose a random non-blacklisted color on initial connection.
 
     Notes:
-        - Valid `at` keys are as follows:
-            - `the_button`: Corresponds to the final button that sends the goal completion.
-            - `button_{i}`: Corresponds to the `i`th button.
-                - e.g., `button_2` corresponds to the button that releases the item from **Button 2 Pressed**.
-            - `any_button`: Randomly picks any button (excluding **The Button**).
-            - `any_safe_button`: Randomly picks any button that contains an item (excluding **The Button**).
-            - `any_trap_button`: Randomly picks any button that contains a **Feeling of Dissatisfaction** trap.
-        - The `any`-style `at` keys will not override explicit text set on an `button_{i}`.
-        - Any `text` values can also contain any of the following placeholder text to have it change based on room:
-            - `%SELF%`: Becomes your slot's name.
-            - `%RANDOM%`: Becomes any random slot name in the multiworld.
-            - `%ITEM%`: Becomes the name of the containing item, unless it's a trap (then it will be a random item).
-            - `%PLAYER%`: Becomes the slot name of the player that would receive this item when pressed.
-            - `%GAME%`: Becomes the game name of the player that would receive this item when pressed.
-            - `%COLOR%`: Becomes the color of this button.
-        - If any button contains the string, `DeathLink`, the button will send a DeathLink when pressed.
-        - If `text` is set to `null`, the text will be automatically chosen by the client.
+        - Valid ``at`` keys are as follows:
+            - ``the_button``: Corresponds to the final button that sends the goal completion.
+            - ``button_{i}``: Corresponds to the ``i``th button.
+                - e.g., ``button_2`` corresponds to the button that releases the item from **Button 2 Pressed**.
+            - ``any_button``: Randomly picks any button (excluding **The Button**).
+            - ``any_safe_button``: Randomly picks any button that contains an item (excluding **The Button**).
+            - ``any_trap_button``: Randomly picks any button that contains a **Feeling of Dissatisfaction** trap.
+        - The ``any``-style ``at`` keys will not override explicit text set on an ``button_{i}``.
+        - Any ``text`` values can also contain any of the following placeholder text to have it change based on room:
+            - ``%SELF%``: Becomes your slot's name.
+            - ``%RANDOM%``: Becomes any random slot name in the multiworld.
+            - ``%ITEM%``: Becomes the name of the containing item, unless it's a trap (then it will be a random item).
+            - ``%PLAYER%``: Becomes the slot name of the player that would receive this item when pressed.
+            - ``%GAME%``: Becomes the game name of the player that would receive this item when pressed.
+            - ``%COLOR%``: Becomes the color of this button.
+        - If any button contains the string, "DeathLink", the button will send a DeathLink when pressed.
+        - If ``text`` is set to ``null``, the text will be automatically chosen by the client.
     """
 
     class PlandoText(NamedTuple):

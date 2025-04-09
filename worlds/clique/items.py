@@ -17,7 +17,7 @@ class CliqueItemData(NamedTuple):
 
 # fmt: off
 item_data: dict[str, CliqueItemData] = {
-    "Feeling of Satisfaction":       CliqueItemData(BASE_ID + 0, ItemClassification.progression),
+    "Feeling of Satisfaction":       CliqueItemData(BASE_ID + 0, ItemClassification.useful),
     "Feeling of Dissatisfaction":    CliqueItemData(BASE_ID + 1, ItemClassification.trap),
     "Clique Lore":                   CliqueItemData(BASE_ID + 2, ItemClassification.filler),
     "Extra Button":                  CliqueItemData(BASE_ID + 3, ItemClassification.progression),

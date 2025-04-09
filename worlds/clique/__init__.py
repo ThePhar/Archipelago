@@ -1,5 +1,5 @@
 from math import ceil
-from typing import TYPE_CHECKING
+from typing import Any, Dict, TYPE_CHECKING, TextIO
 
 from BaseClasses import ItemClassification, Tutorial
 from worlds.AutoWorld import WebWorld, World
@@ -49,7 +49,10 @@ class CliqueWorld(World):
         self.button_index = 1
         self.extra_buttons: list[CliqueItem] = []
         self.regions: list[CliqueRegion] = []
-        self.satisfaction = self.create_item("Feeling of Satisfaction")  # The most important item, duh.
+
+        # For basic logic purposes, we're making it progression (otherwise we'll fail tests with default settings).
+        self.satisfaction: CliqueItem = self.create_item("Feeling of Satisfaction")
+        self.satisfaction.classification = ItemClassification.progression
 
     def create_item(self, name: str, track_button = False) -> CliqueItem:
         item = CliqueItem(name, item_data[name].classification, item_data[name].code, self.player)
@@ -86,6 +89,11 @@ class CliqueWorld(World):
         final_region.locations.append(self.create_location("The Button", final_region))
         if self.options.buttonsanity > 0:
             start_region.locations.append(self.create_location("The Tempter's Gift", start_region))
+
+        # Event item for victory condition.
+        victory_event = self.create_location("Pressed The Button", final_region)
+        victory_event.place_locked_item(CliqueItem("Congraturations", ItemClassification.progression, None, self.player))
+        final_region.locations.append(victory_event)
 
         # Create a region for each button in the item pool.
         for i in range(self.extras):
@@ -148,15 +156,52 @@ class CliqueWorld(World):
             for location in button.unlocking_region.locations:
                 hint_data[self.player][location.address] = hint_text
 
+    def modify_multidata(self, multidata: Dict[str, Any]) -> None:
+        # We're done with logic, so we're making our "logic satisfaction" useful again.
+        satisfaction = multidata["locations"][self.satisfaction.location.player][self.satisfaction.location.address]
+        satisfaction = (satisfaction[0], satisfaction[1], ItemClassification.useful.value)
+        multidata["locations"][self.satisfaction.location.player][self.satisfaction.location.address] = satisfaction
+
+    def write_spoiler(self, spoiler_handle: TextIO) -> None:
+        if self.options.buttonsanity == 0:
+            return
+
+        spoiler_handle.write(f"\nClique Extra Button Mappings - {self.player_name}:\n")
+        strings: list[tuple[str, str]] = []
+        longest = -1
+        for button in self.extra_buttons:
+            owner = self.multiworld.get_player_name(button.location.player)
+            location = button.location.name
+            mapping = [location.name for location in button.unlocking_region.locations]
+
+            prefix = f"\t[{', '.join(mapping)}]"
+            suffix = f" ← {owner}'s ({location})\n"
+            strings.append((prefix, suffix))
+            longest = max(longest, len(prefix))
+
+        for prefix, suffix in strings:
+            spoiler_handle.write(prefix.ljust(longest) + suffix)
+
     def fill_slot_data(self) -> dict[str, any]:
-        mapping = {}
+        logic_mapping = {}
         for button in self.extra_buttons:
             location: CliqueLocation
-            mapping[f"{button.location.player}-{button.location.address}"] = [location.address for location in button.unlocking_region.locations]
+            logic_mapping[f"{button.location.player}-{button.location.address}"] = [
+                location.address for location in button.unlocking_region.locations
+            ]
+
+        plando_texts: list[list[any]] = []
+        for text in self.options.plando_texts:
+            plando_texts.append(list(text)[:-1])
 
         return {
             "version": 2,
-            "mapping": mapping
+            "mapping": logic_mapping,
+            "goal": self.options.buttonsanity.value,
+            "code": self.options.code_entry.value[:64],
+            "dissatisfaction_link": bool(self.options.dissatisfaction_link.value),
+            "blacklist": list(self.options.color_blacklist.value),
+            "plando": plando_texts,
         }
 
     def collect(self, state: "CollectionState", item: CliqueItem) -> bool:
