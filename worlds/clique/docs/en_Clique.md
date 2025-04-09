@@ -2,22 +2,23 @@
 
 ## What is a &ldquo;Clique&rdquo;?
 
-~~__Clique__ is a psychological survival horror game where players must resist the temptation to press large buttons 
-that may destroy the world.~~
+~~__Clique__ is a psychological survival horror experience where you resist the temptation to push world-ending buttons.~~
 
 __Clique__ was originally a silly &ldquo;game&rdquo; developed as a joke to the answer: _&ldquo;What is the minimal 
-amount of interactive gameplay possible?&rdquo;_ The answer? _&ldquo;Click a button and win!&rdquo;_
+amount of interactive gameplay possible?&rdquo;_ 
 
-While still possible to play the classic variant, __Clique__ has been updated to include additional 
-&ldquo;gameplay&rdquo; elements for the 2.0 update, including:
+The answer?: Press (or _&ldquo;clique&rdquo;_) the button and win!
 
-- Additional Buttons
-- Additional Button Cosmetics
-- Dissatisfaction Traps
-- Button Text Plando
-- Proper &ldquo;DeathLink&rdquo; Support
-- ArchipIDLE-Lite Integration
-- ~~Destruction Code Entry~~
+While it is still possible to play the classic variant, the 2.0 update of __Clique__ includes the additional 
+&ldquo;gameplay&rdquo; elements:
+
+- Extra Buttons
+- Dissatisfaction Traps and DeathLinks
+- Advanced Button Text & Color Plandomization
+- Localization Support 
+- Acheivements
+- Lore
+- And other secrets...
 
 ## How do I play Clique?
 
