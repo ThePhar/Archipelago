@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import Iterable, Mapping, NamedTuple
 
@@ -102,6 +103,7 @@ class CliquePlandoTexts(PlandoTexts):
             - ``%COLOR%``: Becomes the color of this button.
         - If any button contains the string, "DeathLink", the button will send a DeathLink when pressed.
         - If ``text`` is set to ``null``, the text will be automatically chosen by the client.
+        - ``text`` is limited to 128 characters; any additional characters will be truncated.
     """
 
     class PlandoText(NamedTuple):
@@ -145,24 +147,24 @@ class CliquePlandoTexts(PlandoTexts):
         })
 
     @classmethod
-    def warn_unknown_placeholders(cls, texts: Iterable[str]):
+    def warn_unknown_placeholders(cls, text: str):
         import logging
         import re
 
-        for text in texts:
-            # That's a scary regex, but it's only looking for specific `%value%` values.
-            matches = [match.group().upper() for match in re.finditer(r"(?:^|\s)%([^\s%]+?)%(?:$|\s)", text)]
-            for match in matches:
-                if match not in cls.valid_placeholders:
-                    continue
+        # That's a scary regex, but it's only looking for specific `%value%` values.
+        matches = [match.group().upper() for match in re.finditer(r"(?:^|\s)%([^\s%]+?)%(?:$|\s)", text)]
+        for match in matches:
+            if match not in cls.valid_placeholders:
+                continue
 
-                logging.warning(f"Unknown placeholder: '%{match}%' in `plando_texts`; client likely won't change text.")
+            logging.warning(f'Unknown placeholder: "%{match}%" in "plando_texts"; client likely won\'t change text.')
 
     @classmethod
     def from_any(cls, data):
+        import logging
         import random
 
-        texts: list[cls.PlandoText] = []
+        texts: dict[str, cls.PlandoText] = {}
         if not isinstance(data, Iterable):
             raise OptionError(f"Cannot convert plando texts from non-list, got {type(data)}.")
 
@@ -185,12 +187,18 @@ class CliquePlandoTexts(PlandoTexts):
                     if not text:
                         text = None
                     else:
-                        cls.warn_unknown_placeholders(text.keys())
                         text = random.choices(list(text.keys()), list(text.values()))[0]
                         if text == "null":
                             text = None
-                elif text:
-                    cls.warn_unknown_placeholders([text])
+
+                if text:
+                    cls.warn_unknown_placeholders(text)
+
+                    # Strip excess whitespace and truncate text, if needed.
+                    text = text.strip()
+                    if len(text) > 128:
+                        text = text[:128]
+                        logging.warning(f'Truncated plando texts on "{at}" to 128 characters.')
 
                 # 'color' Validation
                 color: str = entry.get("color", "random")
@@ -202,14 +210,18 @@ class CliquePlandoTexts(PlandoTexts):
                 elif not cls.verify_colors([color]):
                     raise OptionError('"color" must be a valid color or weighted list of valid colors.')
 
-                texts.append(cls.PlandoText(at, text, color, entry.get("percentage", 100)))
+                if not text and color == "random":
+                    # If both are set to default, then remove from dict, if it exists.
+                    texts.pop(at, None)
+                else:
+                    texts[at] = cls.PlandoText(at, text, color, entry.get("percentage", 100))
 
             elif isinstance(entry, cls.PlandoText) and random.random() < float(entry.percentage / 100):
-                texts.append(entry)
+                texts[entry.at] = entry
             else:
                 raise OptionError(f"Cannot create plando texts from non-dictionary, got {type(entry)}.")
 
-        return cls(texts)
+        return cls(list(texts.values()))
 
 
 # Removed options.
