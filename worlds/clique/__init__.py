@@ -207,13 +207,15 @@ class CliqueWorld(World):
     def collect(self, state: "CollectionState", item: CliqueItem) -> bool:
         state_changed = super().collect(state, item)
         if state_changed and "Button" in item.name:
-            state.prog_items[self.player][f"Access {item.unlocking_region.name}"] += 1
             state.prog_items[self.player]["Buttons"] += get_safe_buttons(item)
+            if item.unlocking_region:
+                state.prog_items[self.player][f"Access {item.unlocking_region.name}"] += 1
         return state_changed
 
     def remove(self, state: "CollectionState", item: CliqueItem) -> bool:
         state_changed = super().remove(state, item)
         if state_changed and "Button" in item.name:
-            state.prog_items[self.player][f"Access {item.unlocking_region.name}"] -= 1
             state.prog_items[self.player]["Buttons"] -= get_safe_buttons(item)
+            if item.unlocking_region:
+                state.prog_items[self.player][f"Access {item.unlocking_region.name}"] -= 1
         return state_changed
