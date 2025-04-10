@@ -38,7 +38,11 @@ class DissatisfactionLink(DefaultOnToggle):
 
 
 class ColorBlacklist(OptionSet):
-    """Prevents certain colors from randomly appearing on any buttons."""
+    """Prevents certain colors from randomly appearing on any buttons.
+    
+    Supported colors include::
+        red, orange, yellow, green, cyan, blue, magenta, purple, pink, brown, black, gray, white, pride, trans
+    """
 
     display_name = "Color Blacklist"
     valid_keys = POSSIBLE_BUTTON_COLORS
@@ -85,7 +89,7 @@ class CliquePlandoTexts(PlandoTexts):
         - Valid ``at`` keys are as follows:
             - ``the_button``: Corresponds to the final button that sends the goal completion.
             - ``button_{i}``: Corresponds to the ``i``th button.
-                - e.g., ``button_2`` corresponds to the button that releases the item from **Button 2 Pressed**.
+                - e.g., ``button_2`` corresponds to the button that releases the item from **Extra Button 2**.
             - ``any_button``: Randomly picks any button (excluding **The Button**).
             - ``any_safe_button``: Randomly picks any button that contains an item (excluding **The Button**).
             - ``any_trap_button``: Randomly picks any button that contains a **Feeling of Dissatisfaction** trap.
