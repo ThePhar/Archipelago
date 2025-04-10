@@ -1,9 +1,9 @@
 from math import ceil
-from typing import Any, Dict, TYPE_CHECKING, TextIO
+from typing import TYPE_CHECKING, TextIO
 
 from BaseClasses import ItemClassification, Tutorial
 from worlds.AutoWorld import WebWorld, World
-from .items import CliqueItem, CliqueItemData, item_data, item_table
+from .items import CliqueItem, CliqueItemData, item_data, item_groups, item_table
 from .locations import CliqueLocation, CliqueRegion, location_groups, location_table
 from .options import CliqueOptions
 from .rules import can_access_final_button, can_access_region, can_win, get_safe_buttons
@@ -39,6 +39,7 @@ class CliqueWorld(World):
     item_name_to_id = item_table
     required_client_version = (0, 6, 1)
     location_name_groups = location_groups
+    item_name_groups = item_groups
     origin_region_name = "The Tempter's Realm"
 
     def __init__(self, multiworld: "MultiWorld", player: int):
@@ -49,10 +50,6 @@ class CliqueWorld(World):
         self.button_index = 1
         self.extra_buttons: list[CliqueItem] = []
         self.regions: list[CliqueRegion] = []
-
-        # For basic logic purposes, we're making it progression (otherwise we'll fail tests with default settings).
-        self.satisfaction: CliqueItem = self.create_item("Feeling of Satisfaction")
-        self.satisfaction.classification = ItemClassification.progression
 
     def create_item(self, name: str, track_button = False) -> CliqueItem:
         item = CliqueItem(name, item_data[name].classification, item_data[name].code, self.player)
@@ -91,7 +88,7 @@ class CliqueWorld(World):
             start_region.locations.append(self.create_location("The Tempter's Gift", start_region))
 
         # Event item for victory condition.
-        victory_event = self.create_location("Pressed The Button", final_region)
+        victory_event = self.create_location("Press The Button", final_region)
         victory_event.place_locked_item(CliqueItem("Congraturations", ItemClassification.progression, None, self.player))
         final_region.locations.append(victory_event)
 
@@ -116,8 +113,9 @@ class CliqueWorld(World):
         self.multiworld.regions += [start_region, *self.regions, final_region]
 
     def create_items(self) -> None:
-        # Every world must have a satisfaction item (it's the law).
-        item_pool: list[CliqueItem] = [self.satisfaction]
+        # Every world must have a logical satisfaction item (it's the law).
+        item_pool: list[CliqueItem] = [self.create_item("Feeling of Satisfaction")]
+        item_pool[0].classification = ItemClassification.progression
 
         # All buttonsanity seeds include lore snippets.
         if self.options.buttonsanity > 0:
@@ -155,12 +153,6 @@ class CliqueWorld(World):
             location: CliqueLocation
             for location in button.unlocking_region.locations:
                 hint_data[self.player][location.address] = hint_text
-
-    def modify_multidata(self, multidata: Dict[str, Any]) -> None:
-        # We're done with logic, so we're making our "logic satisfaction" useful again.
-        satisfaction = multidata["locations"][self.satisfaction.location.player][self.satisfaction.location.address]
-        satisfaction = (satisfaction[0], satisfaction[1], ItemClassification.useful.value)
-        multidata["locations"][self.satisfaction.location.player][self.satisfaction.location.address] = satisfaction
 
     def write_spoiler(self, spoiler_handle: TextIO) -> None:
         if self.options.buttonsanity == 0:

@@ -25,4 +25,8 @@ item_data: dict[str, CliqueItemData] = {
     "Nothing":                       CliqueItemData(BASE_ID + 5, ItemClassification.filler),
 }
 
+item_groups: dict[str, list[str]] = {
+    "Buttons": ["Extra Button", "Extra Two Buttons"]
+}
+
 item_table = {name: data.code for name, data in item_data.items() if data.code}
