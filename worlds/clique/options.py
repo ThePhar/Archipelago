@@ -30,8 +30,7 @@ class Dissatisfaction(Range):
 class DissatisfactionLink(DefaultOnToggle):
     """Send DeathLinks to all DeathLink-participating players if you receive the **Feeling of Dissatisfaction**.
 
-    DeathLinks are always sent when a button is pressed with the text, "***DeathLink***", printed on it. There is no
-    escape.
+    DeathLinks are always sent when a button is pressed with the text, "DeathLink", printed on it. There is no escape.
     """
 
     display_name = "DissatisfactionLink"
