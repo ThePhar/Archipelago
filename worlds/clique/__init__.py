@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, TextIO
 
 from BaseClasses import ItemClassification, Tutorial
 from worlds.AutoWorld import WebWorld, World
-from .items import CliqueItem, CliqueItemData, item_data, item_groups, item_table
+from .items import CliqueItem, CliqueItemData, filler_items, item_data, item_groups, item_table
 from .locations import CliqueLocation, CliqueRegion, location_groups, location_table
 from .options import CliqueOptions
 from .rules import can_access_final_button, can_access_region, can_win, get_safe_buttons
@@ -70,7 +70,7 @@ class CliqueWorld(World):
         return location
 
     def get_filler_item_name(self) -> str:
-        return "Nothing"
+        return self.random.choice(filler_items)
 
     def generate_early(self) -> None:
         if self.options.buttonsanity > 0:
