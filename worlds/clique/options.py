@@ -136,6 +136,15 @@ class CliquePlandoTexts(PlandoTexts):
         return True
 
     @classmethod
+    def get_option_name(cls, value: list[PlandoText]) -> str:
+        return str({
+            text.at: {
+                "text": text.text,
+                "color": text.color,
+            } for text in value
+        })
+
+    @classmethod
     def warn_unknown_placeholders(cls, texts: Iterable[str]):
         import logging
         import re
@@ -178,6 +187,8 @@ class CliquePlandoTexts(PlandoTexts):
                     else:
                         cls.warn_unknown_placeholders(text.keys())
                         text = random.choices(list(text.keys()), list(text.values()))[0]
+                        if text == "null":
+                            text = None
                 elif text:
                     cls.warn_unknown_placeholders([text])
 
