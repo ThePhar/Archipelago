@@ -4,9 +4,9 @@ from typing import Literal
 from flask import Response, get_template_attribute, redirect, render_template
 from flask_wtf import FlaskForm, Form
 from typing_extensions import Self
-from wtforms import FormField, SelectField, StringField, SubmitField, IntegerField, BooleanField
+from wtforms import FormField, SelectField, StringField, SubmitField, IntegerField, BooleanField, RadioField
 from wtforms.widgets import NumberInput
-from wtforms.validators import InputRequired
+from wtforms.validators import InputRequired, Optional
 
 import Options
 from Utils import local_path
@@ -30,7 +30,8 @@ class PlayerOptionsForm(FlaskForm):
 # noinspection PyTypeChecker
 class OptionField(FormField):
     SupportedType = Literal[
-        "choice",         # Toggle or Choice
+        "toggle",         # Toggle
+        "choice",         # Choice
         "text",           # FreeText
         "text_choice",    # TextChoice
         "range",          # Range
@@ -71,7 +72,7 @@ class OptionField(FormField):
         if issubclass(option_class, Options.FreeText):
             return cls(option_class, "text", cls._create_text(option_name, option_class), **kwargs)
         if issubclass(option_class, Options.Toggle):
-            return cls(option_class, "choice", cls._create_toggle(option_name, option_class), **kwargs)
+            return cls(option_class, "toggle", cls._create_toggle(option_name, option_class), **kwargs)
         if issubclass(option_class, Options.Choice):
             return cls(option_class, "choice", cls._create_choice(option_name, option_class), **kwargs)
         if issubclass(option_class, Options.NamedRange):
@@ -79,6 +80,7 @@ class OptionField(FormField):
         if issubclass(option_class, Options.Range):
             return cls(option_class, "range", cls._create_range(option_name, option_class), **kwargs)
 
+        # Unsupported option.
         return None
 
     @staticmethod
@@ -110,7 +112,10 @@ class OptionField(FormField):
     def _create_choice(cls, option_name: str, option_class: type[Options.Choice]) -> type[Form]:
         choices = [(key, option_class.get_option_name(id_)) for id_, key in option_class.name_lookup.items()]
         form_class: type[Form] = type(f"{option_name}Form", (Form, cls.RandomMixin), {})
-        setattr(form_class, "value", SelectField(default=option_class.default, choices=choices))
+        setattr(form_class, "value", SelectField(
+            default=option_class.default,
+            validators=[Optional()],
+            choices=choices))
 
         return form_class
 
@@ -119,9 +124,14 @@ class OptionField(FormField):
         choices = [(key, option_class.get_option_name(id_)) for id_, key in option_class.name_lookup.items()]
         choices = [("", "-- Custom --")] + choices
         form_class: type[Form] = type(f"{option_name}Form", (Form, cls.RandomMixin), {})
-        setattr(form_class, "value", SelectField(default=option_class.name_lookup.get(option_class.default, ""), choices=choices))
+        setattr(form_class, "value", SelectField(
+            default=option_class.name_lookup.get(option_class.default, ""),
+            validators=[Optional()],
+            choices=choices))
         setattr(form_class, "custom_value", StringField(
-            default=option_class.default if option_class.default not in option_class.name_lookup else ""
+            default=option_class.default if option_class.default not in option_class.name_lookup else "",
+            validators=[Optional()],
+            render_kw={"placeholder": "Custom input..."},
         ))
 
         return form_class
@@ -130,7 +140,10 @@ class OptionField(FormField):
     def _create_toggle(cls, option_name: str, option_class: type[Options.Toggle]) -> type[Form]:
         choices = [("true", "Yes"), ("false", "No")]
         form_class: type[Form] = type(f"{option_name}Form", (Form, cls.RandomMixin), {})
-        setattr(form_class, "value", SelectField(default=option_class.default, choices=choices))
+        setattr(form_class, "value", RadioField(
+            default="true" if option_class.default else "false",
+            validators=[Optional()],
+            choices=choices))
 
         return form_class
 
@@ -139,8 +152,8 @@ class OptionField(FormField):
         form_class: type[Form] = type(f"{option_name}Form", (Form, cls.RandomMixin), {})
         setattr(form_class, "value", IntegerField(
             default=option_class.default,
-            widget=NumberInput(min=option_class.range_start, max=option_class.range_end)
-        ))
+            validators=[Optional()],
+            widget=NumberInput(min=option_class.range_start, max=option_class.range_end)))
 
         return form_class
 

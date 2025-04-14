@@ -1,49 +1,41 @@
-window.addEventListener("load", () => {
-    const optionsElement = document.querySelector("#options");
-    const game = optionsElement.getAttribute("data-game");
+const game = document.getElementById("options-game").innerHTML;
+const options = document.getElementById("options");
 
-    // Remove all "Random" options from all select boxes as it's only there for non-JS users.
-    for (const element of optionsElement.querySelectorAll("select")) {
-        /** @type {HTMLOptionElement} */
-        const option = element.querySelector("[data-random]");
-        if (!option) {
-            continue;
+for (const option of options.querySelectorAll(".option-container")) {
+    const type = option.getAttribute("data-type");
+    const default_ = option.getAttribute("data-default");
+    const randomElement = option.querySelector(".option-random input");
+
+    if (randomElement) {
+        linkRandomButton(randomElement);
+    }
+
+    switch (type) {
+        case "choice": {
+
         }
-
-        option.hidden = true;
     }
+}
 
-    for (const option of optionsElement.querySelectorAll(".option-container")) {
-        initializeOptionEvents(option);
-    }
-
+/**
+ * Adds an event listener to the random button to toggle the `disabled` property for all linked inputs when toggled.
+ * @param randomElement {HTMLInputElement}
+ */
+function linkRandomButton(randomElement) {
     /**
-     * @param option {HTMLDivElement}
+     * @param {HTMLInputElement | HTMLSelectElement} element
+     * @param {Event & {target: HTMLInputElement}} event
      */
-    function initializeOptionEvents(option) {
-        const type = option.getAttribute("data-type");
-        switch (type) {
-            case "choice": {
-                /** @type {HTMLInputElement} */
-                const randomElement = option.querySelector(".randomize-checkbox input");
-                const selectElement = option.querySelector("select");
+    const toggleDisabled = (element, event) => {
+        element.disabled = event.target.checked;
+    };
 
-                selectElement.disabled = randomElement.checked;
-                if (selectElement.disabled) {
-                    selectElement.value = "random";
-                } else {
-                    selectElement.value = selectElement.getAttribute("data-default");
-                }
+    for (const id of randomElement.getAttribute("data-linked").split(" ")) {
+        console.log(id);
+        const element = document.getElementById(id)
+        randomElement.addEventListener("change", toggleDisabled.bind(null, element));
 
-                randomElement.addEventListener("change", (e) => {
-                    selectElement.disabled = e.target["checked"];
-                    if (selectElement.disabled) {
-                        selectElement.value = "random";
-                    } else {
-                        selectElement.value = selectElement.getAttribute("data-default");
-                    }
-                });
-            }
-        }
+        // Set initial value.
+        element.disabled = randomElement.checked;
     }
-})
+}
