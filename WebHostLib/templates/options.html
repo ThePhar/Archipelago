@@ -35,7 +35,7 @@
             {{ form.csrf_token }}
 
             {# Meta Options #}
-            <div class="options-container">
+            <div class="options-meta-container">
                 {{ macros.option_base(form.name, form.name) }}
             </div>
 
@@ -67,6 +67,7 @@
 {#            </div>#}
 
             {{ form.submit_export }}
+            {{ form.submit_generate }}
         </form>
     </div>
 {% endblock %}

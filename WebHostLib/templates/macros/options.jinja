@@ -1,5 +1,6 @@
 {%- macro option_base(form, content) -%}
 <div
+    id="{{ form.id }}"
     class="option-container"
     {% if form.option -%}
     data-visibility="{{ form.option.visibility.name }}"
@@ -11,16 +12,18 @@
         {{ form.label }}
 
         {%- if form.description -%}
-            <div class="tooltip-container">
-                (?)
-                <div class="tooltip">
-                    {{ form.description | safe | trim }}
-                </div>
+        <div class="tooltip-container">
+            🛈
+            <div class="tooltip">
+                {{ form.description | safe | trim }}
             </div>
+        </div>
         {%- endif -%}
     </div>
 
-    {{ content }}
+    <div class="option-container__content">
+        {{ content }}
+    </div>
 </div>
 {%- endmacro  -%}
 
@@ -77,10 +80,10 @@
 {%- set content -%}
 <div class="option-subcontainer">
     {{ component_random(form.random, form.option.default == "random", [form.value.id, form.custom_value.id]) }}
-    {{ form.value(data_link=form.custom_value.id, **attrs) }}
+    {{ form.value(**attrs) }}
 </div>
 <div class="option-subcontainer">
-    {{ form.custom_value(data_link=form.value.id) }}
+    {{ form.custom_value(data_linked=form.value.id) }}
 </div>
 {%- endset -%}
 
@@ -94,12 +97,11 @@
     {{ component_random(form.random, form.option.default == "random", [form.value.id, form.value.id ~ "-range"]) }}
     {{ form.value(**attrs) }}
     <input
-            id="{{ form.value.id }}-range"
-            class="requirejs"
-            type="range"
-            min="{{ form.option.range_start }}"
-            max="{{ form.option.range_end }}"
-            data-link="{{ form.value.id }}"
+        id="{{ form.value.id }}-range"
+        class="requirejs"
+        type="range"
+        min="{{ form.option.range_start }}"
+        max="{{ form.option.range_end }}"
     />
 </div>
 <div class="option-subcontainer option-subcontainer--meta">
@@ -115,12 +117,12 @@
 {%- macro option_named_range(form, attrs) -%}
 {%- set content -%}
 <div class="option-subcontainer requirejs">
-    <select id="{{ form.value.id }}-preset" data-link="{{ form.value.id }}">
-    {% for key, value in form.option.special_range_names.items() %}
+    <select id="{{ form.value.id }}-preset">
+        {%- for key, value in form.option.special_range_names.items() -%}
         <option value="{{ value }}">{{ key | replace("_", " ") | title }} ({{ value }})</option>
-    {% endfor %}
-        <option value="custom" hidden>Custom</option>
-        <option value="random" hidden>Random</option>
+        {%- endfor -%}
+
+        <option value="" hidden>-- Custom --</option>
     </select>
 </div>
 <div class="option-subcontainer">
@@ -129,12 +131,11 @@
                         [form.value.id, form.value.id ~ "-preset", form.value.id ~ "-range"]) }}
     {{ form.value(**attrs) }}
     <input
-            id="{{ form.value.id }}-range"
-            class="requirejs"
-            type="range"
-            min="{{ form.option.range_start }}"
-            max="{{ form.option.range_end }}"
-            data-link="{{ form.value.id }}"
+        id="{{ form.value.id }}-range"
+        class="requirejs"
+        type="range"
+        min="{{ form.option.range_start }}"
+        max="{{ form.option.range_end }}"
     />
 </div>
 <div class="option-subcontainer option-subcontainer--meta">

@@ -17,14 +17,14 @@ from .generate import get_meta
 
 class PlayerOptionsForm(FlaskForm):
     name = StringField(
-        "Player Name",
+        "Player Name:",
         [InputRequired()],
-        render_kw={"placeholder": "Player"},
+        render_kw={"placeholder": "Enter your player name..."},
         description="This is your unique player name for connecting from your game; also called your slot name.",
     )
     description = StringField("Options File Description", render_kw={"placeholder": "YAML Description"})
-    submit_generate = SubmitField("Generate for Single Player")
-    submit_export = SubmitField("Download Options")
+    submit_generate = SubmitField("Generate for Single-Player")
+    submit_export = SubmitField("Download Options File")
 
 
 # noinspection PyTypeChecker
@@ -63,7 +63,7 @@ class OptionField(FormField):
             description = getattr(option_class, "__doc__", "").replace("\n    ", "\n")
 
         kwargs = {
-            "label": getattr(option_class, "display_name", option_name),
+            "label": getattr(option_class, "display_name", option_name) + ":",
             "description": description,
         }
 
@@ -131,7 +131,7 @@ class OptionField(FormField):
         setattr(form_class, "custom_value", StringField(
             default=option_class.default if option_class.default not in option_class.name_lookup else "",
             validators=[Optional()],
-            render_kw={"placeholder": "Custom input..."},
+            render_kw={"placeholder": "Enter a custom value..."},
         ))
 
         return form_class
@@ -153,7 +153,7 @@ class OptionField(FormField):
         setattr(form_class, "value", IntegerField(
             default=option_class.default,
             validators=[Optional()],
-            widget=NumberInput(min=option_class.range_start, max=option_class.range_end)))
+            widget=NumberInput()))
 
         return form_class
 
