@@ -29,16 +29,18 @@ class PlayerOptionsForm(FlaskForm):
 
 # noinspection PyTypeChecker
 class OptionField(FormField):
+    # fmt: off
     SupportedType = Literal[
-        "toggle",         # Toggle
-        "choice",         # Choice
-        "text",           # FreeText
-        "text_choice",    # TextChoice
-        "range",          # Range
-        "named_range",    # NamedRange
-        "keyed_list",     # OptionList or OptionSet w/ valid_keys
-        "counter_dict"    # ItemDict
+        "toggle",       # Toggle
+        "choice",       # Choice
+        "text",         # FreeText
+        "text_choice",  # TextChoice
+        "range",        # Range
+        "named_range",  # NamedRange
+        "keyed_list",   # OptionList or OptionSet w/ valid_keys
+        "counter_dict", # ItemDict
     ]
+    # fmt: on
 
     def __init__(self, option_class: type[Options.Option], option_type: SupportedType, *args, **kwargs):
         self.option = option_class
@@ -112,10 +114,9 @@ class OptionField(FormField):
     def _create_choice(cls, option_name: str, option_class: type[Options.Choice]) -> type[Form]:
         choices = [(key, option_class.get_option_name(id_)) for id_, key in option_class.name_lookup.items()]
         form_class: type[Form] = type(f"{option_name}Form", (Form, cls.RandomMixin), {})
-        setattr(form_class, "value", SelectField(
-            default=option_class.default,
-            validators=[Optional()],
-            choices=choices))
+        setattr(
+            form_class, "value", SelectField(default=option_class.default, validators=[Optional()], choices=choices)
+        )
 
         return form_class
 
@@ -124,15 +125,22 @@ class OptionField(FormField):
         choices = [(key, option_class.get_option_name(id_)) for id_, key in option_class.name_lookup.items()]
         choices = [("", "-- Custom --")] + choices
         form_class: type[Form] = type(f"{option_name}Form", (Form, cls.RandomMixin), {})
-        setattr(form_class, "value", SelectField(
-            default=option_class.name_lookup.get(option_class.default, ""),
-            validators=[Optional()],
-            choices=choices))
-        setattr(form_class, "custom_value", StringField(
-            default=option_class.default if option_class.default not in option_class.name_lookup else "",
-            validators=[Optional()],
-            render_kw={"placeholder": "Enter a custom value..."},
-        ))
+        setattr(
+            form_class,
+            "value",
+            SelectField(
+                default=option_class.name_lookup.get(option_class.default, ""), validators=[Optional()], choices=choices
+            ),
+        )
+        setattr(
+            form_class,
+            "custom_value",
+            StringField(
+                default=option_class.default if option_class.default not in option_class.name_lookup else "",
+                validators=[Optional()],
+                render_kw={"placeholder": "Enter a custom value..."},
+            ),
+        )
 
         return form_class
 
@@ -140,20 +148,22 @@ class OptionField(FormField):
     def _create_toggle(cls, option_name: str, option_class: type[Options.Toggle]) -> type[Form]:
         choices = [("true", "Yes"), ("false", "No")]
         form_class: type[Form] = type(f"{option_name}Form", (Form, cls.RandomMixin), {})
-        setattr(form_class, "value", RadioField(
-            default="true" if option_class.default else "false",
-            validators=[Optional()],
-            choices=choices))
+        setattr(
+            form_class,
+            "value",
+            RadioField(default="true" if option_class.default else "false", validators=[Optional()], choices=choices),
+        )
 
         return form_class
 
     @classmethod
     def _create_range(cls, option_name: str, option_class: type[Options.Range]) -> type[Form]:
         form_class: type[Form] = type(f"{option_name}Form", (Form, cls.RandomMixin), {})
-        setattr(form_class, "value", IntegerField(
-            default=option_class.default,
-            validators=[Optional()],
-            widget=NumberInput()))
+        setattr(
+            form_class,
+            "value",
+            IntegerField(default=option_class.default, validators=[Optional()], widget=NumberInput()),
+        )
 
         return form_class
 
@@ -164,6 +174,7 @@ class OptionField(FormField):
 # Cached forms for each game, only created as needed.
 _cached_forms: dict[str, type] = {}
 _cached_groups: dict[str, dict[str, list[str]]] = {}
+
 
 def get_player_options_form(world: type[World]) -> PlayerOptionsForm:
     if world.game in _cached_forms:
@@ -222,6 +233,7 @@ def post_player_options(game: str):
     form = get_player_options_form(world)
 
     if form.validate_on_submit():
+
         class SetEncoder(json.JSONEncoder):
             def default(self, obj):
                 from collections.abc import Set
