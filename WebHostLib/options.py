@@ -1,96 +1,275 @@
-import collections.abc
-import json
-import os
 from textwrap import dedent
-from typing import Dict, Union
-from docutils.core import publish_parts
+from typing import Literal
 
-import yaml
-from flask import redirect, render_template, request, Response, abort
+from flask import Response, get_template_attribute, redirect, render_template
+from flask_wtf import FlaskForm, Form
+from typing_extensions import Self
+from wtforms import FormField, SelectField, StringField, SubmitField, IntegerField, BooleanField
+from wtforms.widgets import NumberInput
+from wtforms.validators import InputRequired
 
 import Options
 from Utils import local_path
-from worlds.AutoWorld import AutoWorldRegister
+from worlds.AutoWorld import AutoWorldRegister, World
 from . import app, cache
 from .generate import get_meta
 
 
-def create() -> None:
+class PlayerOptionsForm(FlaskForm):
+    name = StringField(
+        "Player Name",
+        [InputRequired()],
+        render_kw={"placeholder": "Player"},
+        description="This is your unique player name for connecting from your game; also called your slot name.",
+    )
+    description = StringField("Options File Description", render_kw={"placeholder": "YAML Description"})
+    submit_generate = SubmitField("Generate for Single Player")
+    submit_export = SubmitField("Download Options")
+
+
+# noinspection PyTypeChecker
+class OptionField(FormField):
+    SupportedType = Literal[
+        "choice",         # Toggle or Choice
+        "text",           # FreeText
+        "text_choice",    # TextChoice
+        "range",          # Range
+        "named_range",    # NamedRange
+        "keyed_list",     # OptionList or OptionSet w/ valid_keys
+        "counter_dict"    # ItemDict
+    ]
+
+    def __init__(self, option_class: type[Options.Option], option_type: SupportedType, *args, **kwargs):
+        self.option = option_class
+        self.option_type = option_type
+
+        super().__init__(*args, **kwargs)
+
+    def __call__(self, **attrs) -> str:
+        """Loads and returns the applicable HTML str for this option type when called."""
+        return get_template_attribute("macros/options.jinja", f"option_{self.option_type}")(self, attrs)
+
+    @classmethod
+    def create(cls, world: type[World], option_name: str, option_class: type[Options.Option]) -> Self | None:
+        """Attempt to instantiate a supported ``OptionField`` instance based on the type of option passed in.
+
+        If the provided option is not supported, method will return ``None``.
+        """
+        # Load the appropriate help text for this option.
+        if world.web.rich_text_options_doc or (world.web.rich_text_options_doc is None and option_class.rich_text_doc):
+            description = cls.rst_to_html(getattr(option_class, "__doc__", ""))
+        else:
+            description = getattr(option_class, "__doc__", "").replace("\n    ", "\n")
+
+        kwargs = {
+            "label": getattr(option_class, "display_name", option_name),
+            "description": description,
+        }
+
+        if issubclass(option_class, Options.TextChoice):
+            return cls(option_class, "text_choice", cls._create_text_choice(option_name, option_class), **kwargs)
+        if issubclass(option_class, Options.FreeText):
+            return cls(option_class, "text", cls._create_text(option_name, option_class), **kwargs)
+        if issubclass(option_class, Options.Toggle):
+            return cls(option_class, "choice", cls._create_toggle(option_name, option_class), **kwargs)
+        if issubclass(option_class, Options.Choice):
+            return cls(option_class, "choice", cls._create_choice(option_name, option_class), **kwargs)
+        if issubclass(option_class, Options.NamedRange):
+            return cls(option_class, "named_range", cls._create_range(option_name, option_class), **kwargs)
+        if issubclass(option_class, Options.Range):
+            return cls(option_class, "range", cls._create_range(option_name, option_class), **kwargs)
+
+        return None
+
+    @staticmethod
+    def rst_to_html(text: str) -> str:
+        """Converts reStructuredText (such as a Python docstring) to HTML."""
+        from docutils.core import publish_parts
+
+        if text.startswith(" ") or text.startswith("\t"):
+            text = dedent(text)
+        elif "\n" in text:
+            lines = text.splitlines()
+            text = lines[0] + "\n" + dedent("\n".join(lines[1:]))
+
+        return publish_parts(
+            text,
+            writer_name="html",
+            settings=None,
+            settings_overrides={"raw_enable": False, "file_insertion_enabled": False, "output_encoding": "unicode"},
+        )["body"]
+
+    @classmethod
+    def _create_text(cls, option_name: str, option_class: type[Options.FreeText]) -> type[Form]:
+        form_class: type[Form] = type(f"{option_name}Form", (Form,), {})
+        setattr(form_class, "value", StringField(default=option_class.default))
+
+        return form_class
+
+    @classmethod
+    def _create_choice(cls, option_name: str, option_class: type[Options.Choice]) -> type[Form]:
+        choices = [(key, option_class.get_option_name(id_)) for id_, key in option_class.name_lookup.items()]
+        form_class: type[Form] = type(f"{option_name}Form", (Form, cls.RandomMixin), {})
+        setattr(form_class, "value", SelectField(default=option_class.default, choices=choices))
+
+        return form_class
+
+    @classmethod
+    def _create_text_choice(cls, option_name: str, option_class: type[Options.TextChoice]) -> type[Form]:
+        choices = [(key, option_class.get_option_name(id_)) for id_, key in option_class.name_lookup.items()]
+        choices = [("", "-- Custom --")] + choices
+        form_class: type[Form] = type(f"{option_name}Form", (Form, cls.RandomMixin), {})
+        setattr(form_class, "value", SelectField(default=option_class.name_lookup.get(option_class.default, ""), choices=choices))
+        setattr(form_class, "custom_value", StringField(
+            default=option_class.default if option_class.default not in option_class.name_lookup else ""
+        ))
+
+        return form_class
+
+    @classmethod
+    def _create_toggle(cls, option_name: str, option_class: type[Options.Toggle]) -> type[Form]:
+        choices = [("true", "Yes"), ("false", "No")]
+        form_class: type[Form] = type(f"{option_name}Form", (Form, cls.RandomMixin), {})
+        setattr(form_class, "value", SelectField(default=option_class.default, choices=choices))
+
+        return form_class
+
+    @classmethod
+    def _create_range(cls, option_name: str, option_class: type[Options.Range]) -> type[Form]:
+        form_class: type[Form] = type(f"{option_name}Form", (Form, cls.RandomMixin), {})
+        setattr(form_class, "value", IntegerField(
+            default=option_class.default,
+            widget=NumberInput(min=option_class.range_start, max=option_class.range_end)
+        ))
+
+        return form_class
+
+    class RandomMixin:
+        random = BooleanField()
+
+
+# Cached forms for each game, only created as needed.
+_cached_forms: dict[str, type] = {}
+_cached_groups: dict[str, dict[str, list[str]]] = {}
+
+def get_player_options_form(world: type[World]) -> PlayerOptionsForm:
+    if world.game in _cached_forms:
+        return _cached_forms[world.game]()
+
+    game_class = type("GameContainerForm", (Form,), {})
+    groups: dict[str, list[str]] = {}
+    for group_name, group_options in Options.get_option_groups(world, Options.Visibility.simple_ui).items():
+        groups[group_name] = []
+        for option_name, option_class in group_options.items():
+            option_field = OptionField.create(world, option_name, option_class)
+            if not option_field:
+                continue
+
+            groups[group_name].append(option_name)
+            setattr(game_class, option_name, option_field)
+
+        # Remove any empty groups from rendering by removing the group itself.
+        if not groups[group_name]:
+            del groups[group_name]
+
+    form_class = type(f"{world.game}_PlayerOptionsForm", (PlayerOptionsForm,), {"game_options": FormField(game_class)})
+
+    _cached_forms[world.game] = form_class
+    _cached_groups[world.game] = groups
+    return form_class()
+
+
+@app.route("/games/<string:game>/options", methods=["GET"])
+# @cache.cached()  # TODO: Remove cache before opening PR.
+def get_player_options(game: str):
+    world = AutoWorldRegister.world_types[game]
+    if world.hidden or world.web.options_page is False:
+        return redirect("games")
+
+    form = get_player_options_form(world)
+
+    return render_template(
+        "options.html",
+        game=world.game,
+        theme=world.web.theme,
+        form=form,
+        groups=_cached_groups[world.game],
+        getattr=getattr,
+    )
+
+
+@app.route("/games/<string:game>/options", methods=["POST"])
+def post_player_options(game: str):
+    import json
+
+    world = AutoWorldRegister.world_types[game]
+    if world.hidden or world.web.options_page is False:
+        return redirect("games")
+
+    form = get_player_options_form(world)
+
+    if form.validate_on_submit():
+        class SetEncoder(json.JSONEncoder):
+            def default(self, obj):
+                from collections.abc import Set
+
+                if isinstance(obj, Set):
+                    return list(obj)
+                return json.JSONEncoder.default(self, obj)
+
+        json_data = json.dumps(form.data, cls=SetEncoder)
+        response = Response(json_data)
+        response.headers["Content-Type"] = "application/json"
+        return response
+
+    return str(form.errors)
+
+
+def create_options_files() -> None:
+    import os
+
     target_folder = local_path("WebHostLib", "static", "generated")
     yaml_folder = os.path.join(target_folder, "configs")
 
     Options.generate_yaml_templates(yaml_folder)
 
 
-def get_world_theme(game_name: str) -> str:
-    if game_name in AutoWorldRegister.world_types:
-        return AutoWorldRegister.world_types[game_name].web.theme
-    return 'grass'
-
-
-def render_options_page(template: str, world_name: str, is_complex: bool = False) -> Union[Response, str]:
-    world = AutoWorldRegister.world_types[world_name]
-    if world.hidden or world.web.options_page is False:
-        return redirect("games")
-    visibility_flag = Options.Visibility.complex_ui if is_complex else Options.Visibility.simple_ui
-
-    start_collapsed = {"Game Options": False}
-    for group in world.web.option_groups:
-        start_collapsed[group.name] = group.start_collapsed
-
-    return render_template(
-        template,
-        world_name=world_name,
-        world=world,
-        option_groups=Options.get_option_groups(world, visibility_level=visibility_flag),
-        start_collapsed=start_collapsed,
-        issubclass=issubclass,
-        Options=Options,
-        theme=get_world_theme(world_name),
-    )
-
-
-def generate_game(options: Dict[str, Union[dict, str]]) -> Union[Response, str]:
+def generate_game(options: dict[str, dict | str]) -> Response | str:
     from .generate import start_generation
+
     return start_generation(options, get_meta({}))
 
 
-def send_yaml(player_name: str, formatted_options: dict) -> Response:
-    response = Response(yaml.dump(formatted_options, sort_keys=False))
+def send_yaml(options: dict) -> Response:
+    import yaml
+
+    response = Response(yaml.dump(options, sort_keys=False))
     response.headers["Content-Type"] = "text/yaml"
-    response.headers["Content-Disposition"] = f"attachment; filename={player_name}.yaml"
+    response.headers["Content-Disposition"] = f"attachment; filename={options['name']}.yaml"
     return response
 
 
-@app.template_filter("dedent")
-def filter_dedent(text: str) -> str:
-    return dedent(text).strip("\n ")
+# TODO: Redirects that should be removed in AP 0.7.0
+@app.route("/games/<string:game>/player-options")
+def get_player_options_old(game: str):
+    return redirect(f"/games/{game}/options", 301)
 
 
-@app.template_filter("rst_to_html")
-def filter_rst_to_html(text: str) -> str:
-    """Converts reStructuredText (such as a Python docstring) to HTML."""
-    if text.startswith(" ") or text.startswith("\t"):
-        text = dedent(text)
-    elif "\n" in text:
-        lines = text.splitlines()
-        text = lines[0] + "\n" + dedent("\n".join(lines[1:]))
-
-    return publish_parts(text, writer_name='html', settings=None, settings_overrides={
-        'raw_enable': False,
-        'file_insertion_enabled': False,
-        'output_encoding': 'unicode'
-    })['body']
+@app.route("/games/<string:game>/weighted-options")
+def get_weighted_options_old(game: str):
+    return redirect(f"/games/{game}/options", 301)
 
 
-@app.template_test("ordered")
-def test_ordered(obj):
-    return isinstance(obj, collections.abc.Sequence)
+@app.route("/games/<string:game>/generate", methods=["POST"])
+def post_options_generate(game: str):
+    return redirect(f"/games/{game}/options", 308)
 
 
 @app.route("/games/<string:game>/option-presets", methods=["GET"])
 @cache.cached()
 def option_presets(game: str) -> Response:
+    import json
+
     world = AutoWorldRegister.world_types[game]
 
     presets = {}
@@ -103,18 +282,20 @@ def option_presets(game: str) -> Response:
 
             option = world.options_dataclass.type_hints[preset_option_name].from_any(preset_option)
             if isinstance(option, Options.NamedRange) and isinstance(preset_option, str):
-                assert preset_option in option.special_range_names, \
-                    f"Invalid preset value '{preset_option}' for '{preset_option_name}' in '{preset_name}'. " \
+                assert preset_option in option.special_range_names, (
+                    f"Invalid preset value '{preset_option}' for '{preset_option_name}' in '{preset_name}'. "
                     f"Expected {option.special_range_names.keys()} or {option.range_start}-{option.range_end}."
+                )
 
                 presets[preset_name][preset_option_name] = option.value
             elif isinstance(option, (Options.Range, Options.OptionSet, Options.OptionList, Options.ItemDict)):
                 presets[preset_name][preset_option_name] = option.value
             elif isinstance(preset_option, str):
                 # Ensure the option value is valid for Choice and Toggle options
-                assert option.name_lookup[option.value] == preset_option, \
-                    f"Invalid option value '{preset_option}' for '{preset_option_name}' in preset '{preset_name}'. " \
+                assert option.name_lookup[option.value] == preset_option, (
+                    f"Invalid option value '{preset_option}' for '{preset_option_name}' in preset '{preset_name}'. "
                     f"Values must not be resolved to a different option via option.from_text (or an alias)."
+                )
                 # Use the name of the option
                 presets[preset_name][preset_option_name] = option.current_key
             else:
@@ -124,6 +305,7 @@ def option_presets(game: str) -> Response:
     class SetEncoder(json.JSONEncoder):
         def default(self, obj):
             from collections.abc import Set
+
             if isinstance(obj, Set):
                 return list(obj)
             return json.JSONEncoder.default(self, obj)
@@ -132,156 +314,3 @@ def option_presets(game: str) -> Response:
     response = Response(json_data)
     response.headers["Content-Type"] = "application/json"
     return response
-
-
-@app.route("/weighted-options")
-def weighted_options_old():
-    return redirect("games", 301)
-
-
-@app.route("/games/<string:game>/weighted-options")
-@cache.cached()
-def weighted_options(game: str):
-    try:
-        return render_options_page("weightedOptions/weightedOptions.html", game, is_complex=True)
-    except KeyError:
-        return abort(404)
-
-
-@app.route("/games/<string:game>/generate-weighted-yaml", methods=["POST"])
-def generate_weighted_yaml(game: str):
-    if request.method == "POST":
-        intent_generate = False
-        options = {}
-
-        for key, val in request.form.items():
-            if "||" not in key:
-                if len(str(val)) == 0:
-                    continue
-
-                options[key] = val
-            else:
-                if int(val) == 0:
-                    continue
-
-                [option, setting] = key.split("||")
-                options.setdefault(option, {})[setting] = int(val)
-
-        # Error checking
-        if "name" not in options:
-            return "Player name is required."
-
-        # Remove POST data irrelevant to YAML
-        if "intent-generate" in options:
-            intent_generate = True
-            del options["intent-generate"]
-        if "intent-export" in options:
-            del options["intent-export"]
-
-        # Properly format YAML output
-        player_name = options["name"]
-        del options["name"]
-
-        formatted_options = {
-            "name": player_name,
-            "game": game,
-            "description": f"Generated by https://archipelago.gg/ for {game}",
-            game: options,
-        }
-
-        if intent_generate:
-            return generate_game({player_name: formatted_options})
-
-        else:
-            return send_yaml(player_name, formatted_options)
-
-
-# Player options pages
-@app.route("/games/<string:game>/player-options")
-@cache.cached()
-def player_options(game: str):
-    try:
-        return render_options_page("playerOptions/playerOptions.html", game, is_complex=False)
-    except KeyError:
-        return abort(404)
-
-
-# YAML generator for player-options
-@app.route("/games/<string:game>/generate-yaml", methods=["POST"])
-def generate_yaml(game: str):
-    if request.method == "POST":
-        options = {}
-        intent_generate = False
-        for key, val in request.form.items(multi=True):
-            if key in options:
-                if not isinstance(options[key], list):
-                    options[key] = [options[key]]
-                options[key].append(val)
-            else:
-                options[key] = val
-
-        for key, val in options.copy().items():
-            key_parts = key.rsplit("||", 2)
-            # Detect and build ItemDict options from their name pattern
-            if key_parts[-1] == "qty":
-                if key_parts[0] not in options:
-                    options[key_parts[0]] = {}
-                if val != "0":
-                    options[key_parts[0]][key_parts[1]] = int(val)
-                del options[key]
-
-            # Detect keys which end with -custom, indicating a TextChoice with a possible custom value
-            elif key_parts[-1].endswith("-custom"):
-                if val:
-                    options[key_parts[-1][:-7]] = val
-
-                del options[key]
-
-            # Detect keys which end with -range, indicating a NamedRange with a possible custom value
-            elif key_parts[-1].endswith("-range"):
-                if options[key_parts[-1][:-6]] == "custom":
-                    options[key_parts[-1][:-6]] = val
-
-                del options[key]
-
-        # Detect random-* keys and set their options accordingly
-        for key, val in options.copy().items():
-            if key.startswith("random-"):
-                options[key.removeprefix("random-")] = "random"
-                del options[key]
-
-        # Error checking
-        if not options["name"]:
-            return "Player name is required."
-
-        # Remove POST data irrelevant to YAML
-        preset_name = 'default'
-        if "intent-generate" in options:
-            intent_generate = True
-            del options["intent-generate"]
-        if "intent-export" in options:
-            del options["intent-export"]
-        if "game-options-preset" in options:
-            preset_name = options["game-options-preset"]
-            del options["game-options-preset"]
-
-        # Properly format YAML output
-        player_name = options["name"]
-        del options["name"]
-
-        description = f"Generated by https://archipelago.gg/ for {game}"
-        if preset_name != 'default' and preset_name != 'custom':
-            description += f" using {preset_name} preset"
-
-        formatted_options = {
-            "name": player_name,
-            "game": game,
-            "description": description,
-            game: options,
-        }
-
-        if intent_generate:
-            return generate_game({player_name: formatted_options})
-
-        else:
-            return send_yaml(player_name, formatted_options)

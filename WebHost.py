@@ -133,7 +133,7 @@ if __name__ == "__main__":
 
     from WebHostLib.lttpsprites import update_sprites_lttp
     from WebHostLib.autolauncher import autohost, autogen, stop
-    from WebHostLib.options import create as create_options_files
+    from WebHostLib.options import create_options_files
 
     try:
         update_sprites_lttp()

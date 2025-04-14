@@ -1,0 +1,119 @@
+{%- macro option_base(form, content) -%}
+<div
+    class="option-container"
+    {% if form.option -%}
+    data-visibility="{{ form.option.visibility.name }}"
+    data-default="{{ form.option.default }}"
+    data-type="{{ form.option_type }}"
+    {%- endif %}
+>
+    <div class="option-header">
+        {{ form.label }}
+
+        {%- if form.description -%}
+            <div class="tooltip-container">
+                (?)
+                <div class="tooltip">
+                    {{ form.description | safe | trim }}
+                </div>
+            </div>
+        {%- endif -%}
+    </div>
+
+    {{ content }}
+</div>
+{%- endmacro  -%}
+
+{%- macro component_random(field, default, links) -%}
+<label class="option-random">
+    {{ field(hidden=true, data_linked=" ".join(links), checked=default) }}
+</label>
+{%- endmacro -%}
+
+{%- macro option_text(form, attrs) -%}
+{%- set content -%}
+<div class="option-subcontainer">
+    {{ form.value(**attrs) }}
+</div>
+{%- endset -%}
+
+{{ option_base(form, content) }}
+{%- endmacro  -%}
+
+{%- macro option_choice(form, attrs) -%}
+{%- set content -%}
+<div class="option-subcontainer">
+    {{ component_random(form.random, form.value.default == "random", [form.value.id]) }}
+    {{ form.value(**attrs) }}
+</div>
+{%- endset -%}
+
+{{ option_base(form, content) }}
+{%- endmacro  -%}
+
+{%- macro option_text_choice(form, attrs) -%}
+{%- set content -%}
+<div class="option-subcontainer">
+    {{ component_random(form.random, form.value.default == "random", [form.value.id, form.custom_value.id]) }}
+    {{ form.value(data_link=form.custom_value.id, **attrs) }}
+</div>
+<div class="option-subcontainer">
+    {{ form.custom_value(data_link=form.value.id) }}
+</div>
+{%- endset -%}
+
+{{ option_base(form, content) }}
+{%- endmacro  -%}
+
+{%- macro option_range(form, attrs) -%}
+{%- set content -%}
+<div class="option-subcontainer">
+    {{ component_random(form.random, form.value.default == "random", [form.value.id]) }}
+    {{ form.value(**attrs) }}
+    <input
+            class="requirejs"
+            type="range"
+            min="{{ form.option.range_start }}"
+            max="{{ form.option.range_end }}"
+            data-link="{{ form.value.id }}"
+    />
+</div>
+<div class="option-subcontainer option-subcontainer--meta">
+    <span>Minimum: {{ form.option.range_start }}</span>
+    <span>Maximum: {{ form.option.range_end }}</span>
+</div>
+{%- endset -%}
+
+{{ option_base(form, content) }}
+{%- endmacro  -%}
+
+{%- macro option_named_range(form, attrs) -%}
+{%- set content -%}
+<div class="option-subcontainer requirejs">
+    <select id="{{ form.value.id }}-preset" data-link="{{ form.value.id }}">
+    {% for key, value in form.option.special_range_names.items() %}
+        <option value="{{ value }}">{{ key | replace("_", " ") | title }} ({{ value }})</option>
+    {% endfor %}
+        <option value="custom" hidden>Custom</option>
+        <option value="random" hidden>Random</option>
+    </select>
+</div>
+<div class="option-subcontainer">
+    {{ component_random(form.random, form.value.default == "random", [form.value.id, form.value.id ~ "-preset"]) }}
+    {{ form.value(**attrs) }}
+    <input
+            class="requirejs"
+            type="range"
+            min="{{ form.option.range_start }}"
+            max="{{ form.option.range_end }}"
+            data-link="{{ form.value.id }}"
+    />
+</div>
+<div class="option-subcontainer option-subcontainer--meta">
+    <span>Minimum: {{ form.option.range_start }}</span>
+    <span>Maximum: {{ form.option.range_end }}</span>
+</div>
+{%- endset -%}
+
+{{ option_base(form, content) }}
+{%- endmacro  -%}

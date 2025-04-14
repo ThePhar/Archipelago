@@ -14,7 +14,7 @@ class TestFileGeneration(unittest.TestCase):
         cls.incorrect_path = os.path.join(os.path.split(os.path.dirname(__file__))[0], "WebHostLib")
 
     def test_options(self):
-        from WebHostLib.options import create as create_options_files
+        from WebHostLib.options import create_options_files
         create_options_files()
         target = os.path.join(self.correct_path, "static", "generated", "configs")
         self.assertTrue(os.path.exists(target))

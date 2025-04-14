@@ -1,0 +1,71 @@
+{% extends "pageWrapper.html" %}
+{% import "macros/options.jinja" as macros %}
+
+{% block head %}
+    <title>{{ game }} Options</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for("static", filename="styles/options.css") }}" />
+
+    <noscript>
+        <style>
+            .requirejs {
+                display: none !important;
+            }
+        </style>
+    </noscript>
+{% endblock %}
+
+{% block body %}
+    {% include "header/" ~ theme ~ "Header.html" %}
+
+    <div id="options" class="container">
+        <div class="options-header">
+            <h1 id="options-game">{{ game }}</h1>
+            <h2>Player Options Generator</h2>
+        </div>
+
+        <div class="options-description">
+            <p>
+                Choose the options you would like to play with! You may generate a single-player game from this page,
+                or download an options file you can use to participate in a multiworld.
+            </p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+
+            {# Meta Options #}
+            <div class="options-container">
+                {{ macros.option_base(form.name, form.name) }}
+            </div>
+
+            {%- for group_name, group_options in groups.items() -%}
+            <details open>
+                <summary>{{ group_name }}</summary>
+                <div class="options-container">
+                    {%- for option_name in group_options -%}
+                        {{ getattr(form.game_options, option_name) }}
+                    {%- endfor -%}
+                </div>
+            </details>
+            {%- endfor -%}
+
+{#            {% for group in form.groups %}#}
+{#            <div class="options-container">#}
+{#                {% for name in group.option_names %}#}
+{#                    {{ form.group_0.accessibility }}#}
+{#                    {{ group }}#}
+{#                {% endfor %}#}
+{#            </div>#}
+{#            {% endfor %}#}
+
+{#            <div class="options-container">#}
+{#                {{ form.group_0.easter_egg }}#}
+{#                {% for option_name in form.options %}#}
+{#                    {{ getattr(form.game, option_name) }}#}
+{#                {% endfor %}#}
+{#            </div>#}
+
+            {{ form.submit_export }}
+        </form>
+    </div>
+{% endblock %}
